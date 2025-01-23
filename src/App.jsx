@@ -2,13 +2,17 @@ import { useState } from "react";
 import "./App.css";
 import Header from "./Component/Header";
 import HeroSection from "./Component/HeroSection";
-import Deneme from "./Component/Deneme";
+import Footer from "./Component/Footer";
+import Challenge from "./Component/Challenge";
+import About from "./Component/About";
 function App() {
   return (
     <>
       <Header></Header>
       <HeroSection></HeroSection>
-      <Deneme></Deneme>
+      <Challenge />
+      <About />
+      <Footer></Footer>
     </>
   );
 }

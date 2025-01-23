@@ -1,0 +1,59 @@
+.challenge-section {
+  width: 100%;
+  padding: 80px 20px;
+  background-color: #f5f5f5; /* İsteğe bağlı arka plan rengi */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.challenge-content {
+  max-width: 800px;
+  text-align: center;
+}
+
+.challenge-content h2 {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: #333;
+}
+
+.challenge-content p {
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 32px;
+  line-height: 1.6;
+}
+
+.start-test-btn {
+  padding: 16px 32px;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  background-color: #007bff; /* Ana renk - değiştirilebilir */
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.start-test-btn:hover {
+  background-color: #0056b3; /* Hover rengi - değiştirilebilir */
+}
+
+/* Mobil cihazlar için responsive tasarım */
+@media (max-width: 768px) {
+  .challenge-content h2 {
+    font-size: 24px;
+  }
+
+  .challenge-content p {
+    font-size: 16px;
+  }
+
+  .start-test-btn {
+    padding: 12px 24px;
+    font-size: 16px;
+  }
+}

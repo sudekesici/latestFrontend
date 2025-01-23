@@ -1,0 +1,86 @@
+.about-section {
+  padding: 80px 20px;
+  background-color: #fff;
+  text-align: center;
+}
+
+.about-section h1 {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.about-section h2 {
+  font-size: 36px;
+  font-weight: 600;
+  margin-bottom: 40px;
+  color: #444;
+}
+
+.about-content {
+  max-width: 1000px;
+  margin: 0 auto 60px;
+  text-align: left;
+}
+
+.about-content p {
+  font-size: 18px;
+  line-height: 1.8;
+  margin-bottom: 20px;
+  color: #666;
+}
+
+.stats-section {
+  display: flex;
+  justify-content: center;
+  gap: 100px;
+  margin-top: 60px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-number {
+  font-size: 48px;
+  font-weight: 700;
+  color: #007bff;
+  margin-bottom: 10px;
+}
+
+.stat-label {
+  font-size: 20px;
+  font-weight: 500;
+  color: #444;
+}
+
+/* Mobil responsive tasarım */
+@media (max-width: 768px) {
+  .about-section h1 {
+    font-size: 36px;
+  }
+
+  .about-section h2 {
+    font-size: 28px;
+  }
+
+  .about-content p {
+    font-size: 16px;
+  }
+
+  .stats-section {
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .stat-number {
+    font-size: 36px;
+  }
+
+  .stat-label {
+    font-size: 18px;
+  }
+}
