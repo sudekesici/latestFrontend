@@ -1,9 +1,9 @@
 import React from "react";
-import "./Challenge.css";
+import "./Challenge.css"; // CSS dosyasının yolunu değiştirdik
 
 const Challenge = () => {
   return (
-    <div className="challenge-section">
+    <div className="challenge-container">
       <div className="challenge-content">
         <h2>Girişimci Süper Gücünü Öğrenmeye Ne Dersin?</h2>
         <p>

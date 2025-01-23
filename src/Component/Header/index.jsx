@@ -19,6 +19,9 @@ const Header = () => {
           <li>
             <Link to="/login">Giriş Yap</Link>
           </li>
+          <li>
+            <Link to="/register">Kayıt Ol</Link>
+          </li>
         </ul>
       </nav>
     </header>

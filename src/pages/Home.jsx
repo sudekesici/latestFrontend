@@ -1,13 +1,13 @@
 import React from "react";
 import HeroSection from "../Component/HeroSection";
-import Challange from "../Component/Challenge";
-import About from "../Component/About";
+import About from "./About";
+import Challenge from "./Challenge";
 
 const Home = () => {
   return (
     <>
       <HeroSection />
-      <Challange />
+      <Challenge />
       <About />
     </>
   );
