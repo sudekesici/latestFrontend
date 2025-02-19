@@ -22,7 +22,6 @@ const Register = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Form doğrulama ve gönderme işlemleri burada yapılacak.Henüz yapılmadı.
     console.log("Form data:", formData);
   };
 

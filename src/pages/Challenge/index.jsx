@@ -6,7 +6,7 @@ const Challenge = () => {
   const navigate = useNavigate();
 
   const handleStartTest = () => {
-    console.log("Teste yönlendiriliyor..."); // Debug için
+    console.log("Teste yönlendiriliyor..."); 
     navigate("/test");
   };
 

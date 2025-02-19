@@ -19,6 +19,7 @@ const ShopHeader = () => {
           />
           <button className="search-button">Ara</button>
         </div>
+      
 
         <div className="shop-actions">
           <button className="icon-button">
