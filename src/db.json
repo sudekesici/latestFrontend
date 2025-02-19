@@ -1,0 +1,48 @@
+{
+  "testName": {
+    "title": "Girişimcilik Karakteri Testi"
+  },
+  "description": {
+    "text": "Bu test ile hangi tür girişimci olduğunuzu keşfedin!"
+  },
+  "questions": [
+    {
+      "id": 1,
+      "question": "Yeni bir iş fikri düşündüğünüzde ilk yaklaşımınız ne olur?",
+      "options": [
+        "Hemen uygulamaya başlarım",
+        "Detaylı bir plan yaparım",
+        "Başkalarının fikrini alırım",
+        "Riskleri değerlendiririm"
+      ]
+    },
+    {
+      "id": 2,
+      "question": "Başarısızlıkla karşılaştığınızda nasıl tepki verirsiniz?",
+      "options": [
+        "Yeni bir strateji geliştiririm",
+        "Hatalarımdan ders çıkarırım",
+        "Yardım isterim",
+        "Farklı bir yol denerim"
+      ]
+    },
+    {
+      "id": 3,
+      "question": "Takım çalışmasında nasıl bir rol üstlenirsiniz?",
+      "options": [
+        "Lider olurum",
+        "Yaratıcı fikirler üretirim",
+        "İşbirliği yaparım",
+        "Analiz ederim"
+      ]
+    }
+  ],
+  "scoring": {
+    "types": {
+      "innovative": "Yenilikçi Girişimci",
+      "strategic": "Stratejik Girişimci",
+      "social": "Sosyal Girişimci",
+      "analytical": "Analitik Girişimci"
+    }
+  }
+}

@@ -1,0 +1,134 @@
+.test-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.test-card,
+.result-card {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  width: 100%;
+  max-width: 600px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: #f0f0f0;
+}
+
+.progress {
+  height: 100%;
+  background: linear-gradient(to right, #667eea, #764ba2);
+  transition: width 0.3s ease;
+}
+
+.question-number {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.question-text {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 30px;
+  line-height: 1.4;
+}
+
+.options-container {
+  display: grid;
+  gap: 15px;
+}
+
+.option-button {
+  padding: 15px 20px;
+  border: 2px solid #eee;
+  border-radius: 12px;
+  background: white;
+  font-size: 16px;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.option-button:hover {
+  border-color: #667eea;
+  background: #f8f9ff;
+}
+
+.result-card {
+  text-align: center;
+}
+
+.result-content {
+  margin: 30px 0;
+}
+
+.result-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.restart-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 25px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.restart-button:hover {
+  transform: translateY(-2px);
+}
+
+.loading-animation {
+  text-align: center;
+  color: white;
+}
+
+.rocket {
+  font-size: 48px;
+  animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@media (max-width: 480px) {
+  .test-card,
+  .result-card {
+    padding: 20px;
+  }
+
+  .question-text {
+    font-size: 20px;
+  }
+
+  .option-button {
+    padding: 12px 15px;
+    font-size: 14px;
+  }
+}

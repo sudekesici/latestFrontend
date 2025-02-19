@@ -1,5 +1,5 @@
 import React from "react";
-import "./Challenge.css"; // CSS dosyasının yolunu değiştirdik
+import "./Challenge.css";
 
 const Challenge = () => {
   return (

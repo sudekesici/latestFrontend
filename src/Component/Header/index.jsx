@@ -5,25 +5,29 @@ import "./Header.css";
 const Header = () => {
   return (
     <header className="header">
-      <div className="logo">
-        <Link to="/">Logo</Link>
+      <div className="header-content">
+        <div className="logo">
+          <Link to="/">Logo</Link>
+        </div>
+        <nav className="nav-links">
+          <Link to="/" className="nav-link">
+            Ana Sayfa
+          </Link>
+          <Link to="/about" className="nav-link">
+            Hakkımızda
+          </Link>
+          <Link to="/login" className="nav-link">
+            Giriş Yap
+          </Link>
+          <Link to="/register" className="nav-link">
+            Kayıt Ol
+          </Link>
+          <Link to="/products" className="nav-link shop-button">
+            Alışverişe Başla
+            <span className="arrow">→</span>
+          </Link>
+        </nav>
       </div>
-      <nav>
-        <ul className="nav-links">
-          <li>
-            <Link to="/">Ana Sayfa</Link>
-          </li>
-          <li>
-            <Link to="/about">Hakkımızda</Link>
-          </li>
-          <li>
-            <Link to="/login">Giriş Yap</Link>
-          </li>
-          <li>
-            <Link to="/register">Kayıt Ol</Link>
-          </li>
-        </ul>
-      </nav>
     </header>
   );
 };

@@ -23,7 +23,7 @@ const About = () => {
   }, [isVisible]);
 
   const startCounting = () => {
-    const memberDuration = 2000; // 2 saniye
+    const memberDuration = 2000;
     const trainingDuration = 2000;
     const memberIncrement = 35000 / (memberDuration / 16);
     const trainingIncrement = 750 / (trainingDuration / 16);
@@ -59,23 +59,29 @@ const About = () => {
 
       <div className="about-content">
         <p>
-          Türkiye'nin ilk ve tek dijital network ağı olan Girişimci Kadınlar
-          Grubu, 2017 yılında Ülkü Hür tarafından kurulmuştur.
+          {" "}
+          EmekSepeti, evden üretim yapmak isteyen kadınları destekleyen, onların
+          el emeği ürünlerini daha geniş kitlelere ulaştırmasını sağlayan bir
+          dijital platformdur. Kadınların ekonomik hayatta daha güçlü yer
+          alabilmesi için tasarlanan EmekSepeti, girişimci ruhu teşvik eden ve
+          dayanışma odaklı bir topluluk oluşturmayı amaçlamaktadır.{" "}
         </p>
         <p>
-          "Kendine İnan Hayallerine Sahip Çık" sloganıyla birleşen Girişimci
-          Kadınlar Grubu; gönüllülük esasına dayalıdır ve kadınlarımızın çalışma
-          hayatında güçlenmesini hedefler. Her geçen gün büyüyen, kadınların
-          ticarette aktif bir şekilde yer alabilmesi için çalışan, kadın
-          girişimcilerin güçlenmesi için eğitim, rehberlik, koçluk ve network
-          desteği sağlayan ve organizasyonlar düzenleyen bir kadın topluluğudur.
+          {" "}
+          “Emeğini Değere Dönüştür” mottosuyla yola çıkan EmekSepeti, kadınların
+          yeteneklerini kazanca çevirebileceği bir ekosistem sunar.
+          Kullanıcılar, el yapımı yiyeceklerden sanatsal tasarımlara kadar
+          birçok ürünü platform üzerinden paylaşabilir, talepler doğrultusunda
+          sipariş alabilir ve işlerini büyütebilirler.{" "}
         </p>
         <p>
-          Kuruluşundan bu yana GKG misyonu ve vizyonu doğrultusunda, Türkiye
-          başta olmak üzere tüm dünya genelinde 35.000'e yakın kadın girişimci
-          üyeyi aynı çatı altında buluşturmuş; kadın girişimcilerin karar verici
-          ve ekonomik hayatta daha güçlü pozisyonlarda yer almasını sağlamak ve
-          desteklemek için durmaksızın çalışmıştır.
+          {" "}
+          Kurulduğu günden bu yana EmekSepeti, üretici kadınları desteklemek
+          adına rehberlik, eğitim ve pazarlama desteği sunarak onların ekonomik
+          bağımsızlıklarını güçlendirmeye katkı sağlamaktadır. Bugün, yüzlerce
+          kadın girişimciyi aynı çatı altında buluşturan bu platform, onların iş
+          hayatında daha görünür olmasını sağlamak için çalışmalarına devam
+          etmektedir.{" "}
         </p>
       </div>
 
