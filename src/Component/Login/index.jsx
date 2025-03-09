@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios"; // axios import et
 import "./Login.css";
 
 const Login = () => {
@@ -8,9 +9,35 @@ const Login = () => {
     password: "",
   });
 
-  const handleSubmit = (e) => {
+  const [errorMessage, setErrorMessage] = useState(""); // Hata mesajı için durum ekledik
+  const navigate = useNavigate(); // Yönlendirme için useNavigate
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Giriş yapılıyor:", formData);
+
+    try {
+      const response = await axios.post(
+        "http://localhost:8080/api/v1/auth/login",
+        formData
+      );
+
+      if (response.data.token) {
+        // Token'ı localStorage'a kaydet
+        localStorage.setItem("token", response.data.token);
+        console.log(response.data.token);
+
+        // Başarılı giriş sonrası anasayfaya yönlendir
+        navigate("/"); // Ana sayfaya yönlendir
+      } else {
+        setErrorMessage("Giriş yaparken bir sorun oluştu.");
+      }
+    } catch (error) {
+      setErrorMessage(
+        "Giriş başarısız. Lütfen e-posta ve şifrenizi kontrol edin."
+      );
+      console.error("Login failed:", error);
+    }
   };
 
   const handleChange = (e) => {
@@ -24,6 +51,10 @@ const Login = () => {
     <div className="login-container">
       <div className="login-box">
         <h2>Giriş Yap</h2>
+        {errorMessage && (
+          <div className="error-message">{errorMessage}</div>
+        )}{" "}
+        {/* Hata mesajını göster */}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <input

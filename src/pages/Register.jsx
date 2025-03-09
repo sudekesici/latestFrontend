@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios"; // axios import et
 import "./Register.css";
 
 const Register = () => {
@@ -12,6 +13,9 @@ const Register = () => {
     agreeToTerms: false,
   });
 
+  const [errorMessage, setErrorMessage] = useState(""); // Hata mesajı için durum ekledik
+  const navigate = useNavigate(); // Yönlendirme için useNavigate
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prevState) => ({
@@ -20,15 +24,58 @@ const Register = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form data:", formData);
+
+    // Şifreler eşleşiyor mu kontrol et
+    if (formData.password !== formData.confirmPassword) {
+      setErrorMessage("Şifreler uyuşmuyor.");
+      return;
+    }
+
+    const user = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      password: formData.password,
+      userType: "BUYER",
+      phoneNumber: "2837487543",
+    };
+
+    try {
+      console.log(user);
+      const response = await axios.post(
+        "http://localhost:8080/api/v1/auth/register", // Kayıt API'nizi buraya yazın
+        user
+      );
+      console.log(response);
+
+      // Kayıt başarılı ise yönlendir
+      if (response.status === 200) {
+        setErrorMessage(
+          "Kayıt işleminiz başarılı! E-posta adresinizi doğrulamak için lütfen e-posta kutunuzu kontrol edin."
+        );
+
+        // Anasayfaya yönlendirme
+        setTimeout(() => {
+          navigate("/login"); // Anasayfaya yönlendir
+        }, 2000); // 2 san
+        // Kayıt başarılıysa giriş sayfasına yönlendir
+      }
+    } catch (error) {
+      setErrorMessage(
+        "Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin."
+      );
+      console.error("Registration failed:", error);
+    }
   };
 
   return (
     <div className="register-container">
       <div className="register-box">
         <h2>Kayıt Ol</h2>
+        {errorMessage && <div className="error-message">{errorMessage}</div>}
+        {/* Hata mesajını göster */}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <input
