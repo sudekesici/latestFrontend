@@ -1,65 +1,104 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import axios from "axios";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "./Header.css";
 
-const Header = () => {
-  const [categories, setCategories] = useState([]);
+const Header = ({ user, categories, setUser }) => {
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:8080/api/v1/categories"
-        );
-        setCategories(response.data);
-      } catch (error) {
-        console.error("API'den kategori verisi alınırken hata oluştu:", error);
-      }
-    };
-
-    fetchCategories();
-  }, []);
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setUser(null);
+    setShowUserMenu(false);
+    navigate("/");
+  };
 
   return (
     <header className="header">
-      <div className="header-content">
-        <div className="logo">
-          <Link to="/">Logo</Link>
-        </div>
-        <nav className="nav-links">
-          <Link to="/" className="nav-link">
-            Ana Sayfa
-          </Link>
-          <Link to="/about" className="nav-link">
-            Hakkımızda
-          </Link>
-          <Link to="/login" className="nav-link">
-            Giriş Yap
-          </Link>
-          <Link to="/register" className="nav-link">
-            Kayıt Ol
-          </Link>
-          <Link to="/products" className="nav-link shop-button">
-            Alışverişe Başla
-            <span className="arrow">→</span>
-          </Link>
-          {/* Kategoriler dropdown menüsü */}
-          <div className="dropdown">
-            <button className="dropbtn">Kategoriler</button>
-            <div className="dropdown-content">
-              {categories.length > 0 ? (
-                categories.map((category) => (
-                  <Link key={category.id} to={`/categories/${category.id}`}>
-                    {category.name}
-                  </Link>
-                ))
-              ) : (
-                <p>Yükleniyor...</p>
-              )}
-            </div>
+      <div className="logo">
+        <Link to="/">
+          <img src="src\assets\img\senior_logo.jpg" alt="site_logo" />
+        </Link>
+      </div>
+      <nav className="nav-links">
+        <Link to="/">Ana Sayfa</Link>
+        <Link to="/products">Ürünler</Link>
+        <Link to="/about">Hakkımızda</Link>
+
+        <div className="category-container">
+          <span className="category-trigger">Kategoriler</span>
+          <div className="category-dropdown">
+            {categories?.length > 0 ? (
+              categories.map((category) => (
+                <Link
+                  key={category.id}
+                  to={`/categories/${category.id}`}
+                  className="category-item"
+                >
+                  {category.name}
+                </Link>
+              ))
+            ) : (
+              <span className="category-item">Yükleniyor...</span>
+            )}
           </div>
-        </nav>
+        </div>
+      </nav>
+
+      <div className="auth-section">
+        {user ? (
+          <div className="user-menu">
+            <button
+              className="user-menu-button"
+              onClick={() => setShowUserMenu(!showUserMenu)}
+            >
+              <img
+                src={user.profileImage || "/default-avatar.png"}
+                alt="Profil"
+                className="user-avatar"
+              />
+              <span>{user.firstName}</span>
+            </button>
+            {showUserMenu && (
+              <div className="user-dropdown">
+                <Link to="/profile" onClick={() => setShowUserMenu(false)}>
+                  Profilim
+                </Link>
+                {user.userType === "SELLER" && (
+                  <>
+                    <Link
+                      to="/my-products"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      Ürünlerim
+                    </Link>
+                    <Link
+                      to="/add-product"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      Ürün Ekle
+                    </Link>
+                  </>
+                )}
+                {user.userType === "ADMIN" && (
+                  <Link to="/admin" onClick={() => setShowUserMenu(false)}>
+                    Admin Paneli
+                  </Link>
+                )}
+                <button onClick={handleLogout}>Çıkış Yap</button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="auth-buttons">
+            <Link to="/login" className="login-button">
+              Giriş Yap
+            </Link>
+            <Link to="/register" className="register-button">
+              Kayıt Ol
+            </Link>
+          </div>
+        )}
       </div>
     </header>
   );

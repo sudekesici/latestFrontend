@@ -1,20 +1,42 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import "./Register.css";
 
-const Register = () => {
+const Register = ({ updateUser }) => {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
     phoneNumber: "",
-    userType: "user", // varsayılan değer
+    userType: "user",
   });
 
-  const handleSubmit = (e) => {
+  const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Kayıt yapılıyor:", formData);
+    try {
+      const response = await axios.post(
+        "http://localhost:8080/api/v1/auth/register",
+        formData
+      );
+
+      if (response.data.token) {
+        localStorage.setItem("token", response.data.token);
+        await updateUser(); // User state'ini güncelle
+        navigate("/"); // Ana sayfaya yönlendir
+      } else {
+        setErrorMessage("Kayıt olurken bir sorun oluştu.");
+      }
+    } catch (error) {
+      console.error("Kayıt başarısız:", error);
+      setErrorMessage(
+        error.response?.data?.message || "Kayıt işlemi başarısız oldu."
+      );
+    }
   };
 
   const handleChange = (e) => {
@@ -28,6 +50,7 @@ const Register = () => {
     <div className="login-container">
       <div className="login-box">
         <h2>Kayıt Ol</h2>
+        {errorMessage && <div className="error-message">{errorMessage}</div>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <input

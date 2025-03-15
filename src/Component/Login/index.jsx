@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios"; // axios import et
 import "./Login.css";
 
-const Login = () => {
+const Login = ({ updateUser }) => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
