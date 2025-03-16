@@ -1,4 +1,3 @@
-
 .header {
   display: flex;
   justify-content: space-between;
@@ -6,7 +5,6 @@
   padding: 0 2rem;
   background-color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  
   height: 70px;
   position: fixed;
   top: 0;
@@ -27,7 +25,6 @@
   align-items: center;
   text-decoration: none;
   height: 100%;
-  
 }
 
 .logo img {
@@ -37,8 +34,8 @@
   max-height: 65px;
   object-fit: contain;
   transition: transform 0.3s ease;
-
 }
+
 /* Navigation Links */
 .nav-links {
   display: flex;
@@ -119,28 +116,6 @@
 .auth-section {
   display: flex;
   align-items: center;
-  gap: 1rem;
-}
-
-.auth-buttons {
-  display: flex;
-  gap: 1rem;
-}
-
-.login-button,
-.register-button {
-  padding: 0.75rem 1.5rem;
-  
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.auth-section {
-  display: flex;
-  align-items: center;
   margin-left: 2rem;
 }
 
@@ -148,7 +123,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  height: 20px; /* Sabit yükseklik verdim */
+  height: 20px;
 }
 
 .login-button,
@@ -192,6 +167,99 @@
   box-shadow: 0 4px 12px rgba(44, 82, 130, 0.2);
 }
 
+/* User Menu Styles */
+.user-menu {
+  position: relative;
+}
+
+.user-menu-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: none;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.user-menu-button:hover {
+  background-color: rgba(66, 153, 225, 0.08);
+}
+
+.user-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #2c5282;
+}
+
+.user-menu-button span {
+  color: #4a5568;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background-color: white;
+  min-width: 200px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 0.5rem;
+  animation: fadeInDown 0.3s ease-out;
+  z-index: 1000;
+}
+
+.user-dropdown a,
+.user-dropdown button {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  color: #4a5568;
+  text-decoration: none;
+  font-size: 0.95rem;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.user-dropdown a:hover,
+.user-dropdown button:hover {
+  background-color: rgba(66, 153, 225, 0.08);
+  color: #2c5282;
+  transform: translateX(4px);
+}
+
+.user-dropdown button {
+  color: #e53e3e;
+  font-weight: 500;
+}
+
+.user-dropdown button:hover {
+  background-color: rgba(229, 62, 62, 0.08);
+  color: #c53030;
+}
+
+/* Animations */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Responsive tasarım için güncellemeler */
 @media (max-width: 768px) {
   .auth-buttons {
@@ -203,6 +271,15 @@
   .register-button {
     padding: 0 1.2rem;
     font-size: 0.85rem;
+  }
+
+  .user-menu-button span {
+    display: none;
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
   }
 }
 
@@ -216,5 +293,9 @@
   .register-button {
     padding: 0 1rem;
     font-size: 0.8rem;
+  }
+
+  .user-dropdown {
+    min-width: 180px;
   }
 }

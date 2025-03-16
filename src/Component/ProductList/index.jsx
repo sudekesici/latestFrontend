@@ -1,14 +1,20 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import "./ProductList.css";
+import { useNavigate } from "react-router-dom";
 
-// Axios instance oluştur
-const api = axios.create({
+// Public API instance for product listing
+const publicApi = axios.create({
   baseURL: "http://localhost:8080/api/v1",
 });
 
-// Request interceptor ekle
-api.interceptors.request.use(
+// Authenticated API instance for user actions
+const authApi = axios.create({
+  baseURL: "http://localhost:8080/api/v1",
+});
+
+// Request interceptor for authenticated API
+authApi.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -21,39 +27,46 @@ api.interceptors.request.use(
   }
 );
 
+// Response interceptor for authenticated API
+authApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // Sadece korumalı rotalarda token hatası olduğunda çıkış yap
+      const protectedRoutes = [
+        "/cart",
+        "/orders",
+        "/my-products",
+        "/add-product",
+        "/admin",
+      ];
+      if (protectedRoutes.some((route) => error.config.url.includes(route))) {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 function ProductList() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [categories, setCategories] = useState([]);
-  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Ürünleri ve kategorileri paralel olarak çekelim
+        // Ürünleri ve kategorileri paralel olarak çekelim (public API)
         const [productsResponse, categoriesResponse] = await Promise.all([
-          api.get("/products"),
-          api.get("/categories"),
+          publicApi.get("/products"),
+          publicApi.get("/categories"),
         ]);
 
         setProducts(productsResponse.data.content);
         setCategories(categoriesResponse.data);
-
-        // Kullanıcı bilgisini kontrol edelim
-        const token = localStorage.getItem("token");
-        if (token) {
-          try {
-            const userResponse = await api.get("/users/profile");
-            setUser(userResponse.data);
-          } catch (userError) {
-            console.error("Kullanıcı bilgileri alınamadı:", userError);
-            // Token geçersizse localStorage'dan kaldır
-            if (userError.response?.status === 403) {
-              localStorage.removeItem("token");
-            }
-          }
-        }
       } catch (err) {
         console.error("Veri alınırken hata oluştu:", err);
         setError("Veriler yüklenirken bir hata oluştu.");
@@ -63,20 +76,7 @@ function ProductList() {
     };
 
     fetchData();
-  }, []);
-
-  // Token değiştiğinde useEffect'i tekrar çalıştır
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setUser(null);
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+  }, [navigate]);
 
   if (loading)
     return (
@@ -101,23 +101,25 @@ function ProductList() {
         {products.length === 0 ? (
           <div className="error">Ürün bulunamadı.</div>
         ) : (
-          <ProductGrid products={products} user={user} />
+          <ProductGrid products={products} />
         )}
       </div>
     </div>
   );
 }
 
-function ProductGrid({ products, user }) {
+function ProductGrid({ products }) {
+  const navigate = useNavigate();
+
   const handleAddToCart = async (productId) => {
     try {
-      if (!user) {
-        // Kullanıcı giriş yapmamışsa login sayfasına yönlendir
-        window.location.href = "/login";
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login");
         return;
       }
 
-      await api.post("/cart/add", {
+      await authApi.post("/cart/add", {
         productId,
         quantity: 1,
       });
@@ -125,7 +127,11 @@ function ProductGrid({ products, user }) {
       alert("Ürün sepete eklendi!");
     } catch (error) {
       console.error("Sepete eklenirken hata:", error);
-      alert("Ürün sepete eklenemedi.");
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        navigate("/login");
+      } else {
+        alert("Ürün sepete eklenemedi.");
+      }
     }
   };
 

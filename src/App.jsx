@@ -7,10 +7,11 @@ import Register from "./pages/Register";
 import About from "./pages/About";
 import Challenge from "./pages/Challenge";
 import ProductList from "./Component/ProductList";
-import TestPage from "./pages/TestPage";
 import Profile from "./Component/Profile";
 import Admin from "./Component/Admin";
 import CategoryPage from "./pages/CategoryPage";
+import SellerProducts from "./pages/SellerProducts";
+import AddProduct from "./pages/AddProduct";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -28,15 +29,19 @@ function App() {
 
   const fetchUserProfile = async (token) => {
     try {
-      const response = await axios.get(
-        "http://localhost:8080/api/v1/users/profile",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await axios.get("http://localhost:8080/api/v1/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
       setUser(response.data);
     } catch (error) {
-      console.error("Kullanıcı profili yüklenirken hata:", error);
+      console.error(
+        "Kullanıcı profili yüklenirken hata:",
+        error.response?.data || error.message
+      );
       localStorage.removeItem("token");
       setUser(null);
     }
@@ -44,8 +49,17 @@ function App() {
 
   const fetchCategories = async () => {
     try {
+      const token = localStorage.getItem("token");
       const response = await axios.get(
-        "http://localhost:8080/api/v1/categories"
+        "http://localhost:8080/api/v1/categories",
+        token
+          ? {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          : {}
       );
       setCategories(response.data);
     } catch (error) {
@@ -53,7 +67,6 @@ function App() {
     }
   };
 
-  // User state'ini güncelleyecek fonksiyon
   const updateUser = async () => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -72,14 +85,30 @@ function App() {
         <Route path="/challenge" element={<Challenge />} />
         <Route path="/products" element={<ProductList />} />
         <Route path="/categories/:id" element={<CategoryPage />} />
-        <Route path="/test" element={<TestPage />} />
+
         <Route
-          path="/profile"
+          path="/profile/:id"
           element={user ? <Profile /> : <Navigate to="/login" />}
         />
         <Route
           path="/admin"
           element={user?.userType === "ADMIN" ? <Admin /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/my-products"
+          element={
+            user?.userType === "SELLER" ? (
+              <SellerProducts />
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route
+          path="/add-product"
+          element={
+            user?.userType === "SELLER" ? <AddProduct /> : <Navigate to="/" />
+          }
         />
       </Routes>
       <Footer />

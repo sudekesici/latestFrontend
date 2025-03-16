@@ -1,49 +1,60 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import axios from "axios";
 import "./Profile.css";
 
 const Profile = () => {
+  const { id } = useParams();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
-    bio: "",
     phoneNumber: "",
+    bio: "",
   });
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get(
-          "http://localhost:8080/api/v1/users/profile",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        setUser(response.data);
-        setFormData({
-          firstName: response.data.firstName,
-          lastName: response.data.lastName,
-          email: response.data.email,
-          bio: response.data.bio || "",
-          phoneNumber: response.data.phoneNumber || "",
-        });
-        setLoading(false);
-      } catch (err) {
-        setError("Profil bilgileri yüklenirken bir hata oluştu.");
-        setLoading(false);
-      }
-    };
+    fetchProfile();
+  }, [id]);
 
-    fetchUserProfile();
-  }, []);
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Yetkisiz erişim. Lütfen giriş yapın.");
+        setLoading(false);
+        return;
+      }
+
+      const response = await axios.get(
+        `http://localhost:8080/api/v1/users/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setUser(response.data);
+      setFormData({
+        firstName: response.data.firstName,
+        lastName: response.data.lastName,
+        email: response.data.email,
+        phoneNumber: response.data.phoneNumber || "",
+        bio: response.data.bio || "",
+      });
+      setLoading(false);
+    } catch (error) {
+      setError("Profil bilgileri yüklenirken bir hata oluştu.");
+      console.error("Profil verisi alınamadı:", error);
+      setLoading(false);
+    }
+  };
 
   const handleEdit = () => {
     setEditing(true);
@@ -56,35 +67,104 @@ const Profile = () => {
     });
   };
 
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        // Dosyayı base64'e çevir
+        const base64 = await convertToBase64(file);
+        setFormData((prev) => ({
+          ...prev,
+          profilePicture: base64,
+        }));
+
+        // Önizleme için
+        setUser((prev) => ({
+          ...prev,
+          profilePicture: base64,
+        }));
+      } catch (error) {
+        console.error("Dosya dönüştürme hatası:", error);
+      }
+    }
+  };
+
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      await axios.put("http://localhost:8080/api/v1/users/profile", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setUser({ ...user, ...formData });
+
+      // Profil bilgilerini güncelle (profil fotoğrafı dahil)
+      const response = await axios.put(
+        `http://localhost:8080/api/v1/users/${id}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      setUser(response.data);
       setEditing(false);
     } catch (err) {
-      setError("Profil güncellenirken bir hata oluştu.");
+      console.error("Profil güncellenirken hata:", err);
+      if (err.response?.status === 403) {
+        setError("Bu profili düzenleme yetkiniz yok.");
+      } else {
+        setError("Profil güncellenirken bir hata oluştu.");
+      }
     }
   };
 
-  if (loading) return <div>Yükleniyor...</div>;
-  if (error) return <div>{error}</div>;
+  if (loading) return <div className="loading">Yükleniyor...</div>;
+  if (error) return <div className="error-message">{error}</div>;
+  if (!user) return <div className="error-message">Kullanıcı bulunamadı.</div>;
 
   return (
     <div className="profile-container">
       <div className="profile-header">
         <div className="profile-avatar">
-          <img src={user?.profileImage || "/default-avatar.png"} alt="Profil" />
+          <img
+            src={user.profilePicture || "/default-avatar.png"}
+            alt="Profil"
+            className="profile-image"
+          />
+          {editing && (
+            <div className="profile-image-upload">
+              <label htmlFor="profile-picture" className="upload-label">
+                <i className="fas fa-camera"></i> Fotoğraf Değiştir
+              </label>
+              <input
+                id="profile-picture"
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="file-input"
+              />
+            </div>
+          )}
         </div>
         <h2>
-          {user?.firstName} {user?.lastName}
+          {user.firstName} {user.lastName}
         </h2>
-        <p>{user?.userType === "SELLER" ? "Satıcı" : "Alıcı"}</p>
+        <p>
+          {user.userType === "SELLER"
+            ? "Satıcı"
+            : user.userType === "ADMIN"
+            ? "Admin"
+            : "Alıcı"}
+        </p>
       </div>
 
       {editing ? (
@@ -153,20 +233,20 @@ const Profile = () => {
           <div className="info-group">
             <label>Ad Soyad:</label>
             <p>
-              {user?.firstName} {user?.lastName}
+              {user.firstName} {user.lastName}
             </p>
           </div>
           <div className="info-group">
             <label>E-posta:</label>
-            <p>{user?.email}</p>
+            <p>{user.email}</p>
           </div>
           <div className="info-group">
             <label>Telefon:</label>
-            <p>{user?.phoneNumber || "Belirtilmemiş"}</p>
+            <p>{user.phoneNumber || "Belirtilmemiş"}</p>
           </div>
           <div className="info-group">
             <label>Biyografi:</label>
-            <p>{user?.bio || "Biyografi eklenmemiş"}</p>
+            <p>{user.bio || "Biyografi eklenmemiş"}</p>
           </div>
           <button onClick={handleEdit} className="edit-button">
             Profili Düzenle

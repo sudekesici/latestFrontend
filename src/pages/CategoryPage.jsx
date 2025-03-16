@@ -20,12 +20,8 @@ function CategoryPage() {
           axios.get(`http://localhost:8080/api/v1/products/category/${id}`),
         ]);
 
-        console.log("Category Response:", categoryResponse.data);
-        console.log("Products Response:", productsResponse.data);
-
         // Kategori bilgisini set et
         setCategory(categoryResponse.data);
-        setProducts(productsResponse.data);
 
         // Ürünleri kontrol et ve filtrele
         const responseData = productsResponse.data;
@@ -36,9 +32,12 @@ function CategoryPage() {
           const productsArray = responseData.content || responseData;
 
           if (Array.isArray(productsArray)) {
+            // Sadece aktif ürünleri filtrele
             filteredProducts = productsArray.filter(
               (product) =>
-                product.category && product.category.id === parseInt(id)
+                product.category &&
+                product.category.id === parseInt(id) &&
+                product.status === "AVAILABLE"
             );
           }
         }
@@ -72,7 +71,7 @@ function CategoryPage() {
 
         {/* Ana kategori ürünleri */}
         <h3 className="product-list-title">
-          {category.name} Kategorisindeki Ürünler
+          {category.name} Kategorisindeki Aktif Ürünler
         </h3>
         <div className="products-grid">
           {products.length > 0 ? (
@@ -91,7 +90,7 @@ function CategoryPage() {
               </div>
             ))
           ) : (
-            <p>Bu kategoride ürün bulunmamaktadır.</p>
+            <p>Bu kategoride aktif ürün bulunmamaktadır.</p>
           )}
         </div>
       </div>

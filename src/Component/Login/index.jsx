@@ -25,10 +25,12 @@ const Login = ({ updateUser }) => {
       if (response.data.token) {
         // Token'ı localStorage'a kaydet
         localStorage.setItem("token", response.data.token);
+        localStorage.setItem("userType", response.data.userType);
         console.log(response.data.token);
+        console.log(response.data.userType);
 
-        // Başarılı giriş sonrası anasayfaya yönlendir
-        navigate("/"); // Ana sayfaya yönlendir
+        updateUser(); // Kullanıcı bilgisini güncelle
+        navigate("/");
       } else {
         setErrorMessage("Giriş yaparken bir sorun oluştu.");
       }

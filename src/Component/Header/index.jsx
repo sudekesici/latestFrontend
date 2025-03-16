@@ -13,6 +13,27 @@ const Header = ({ user, categories, setUser }) => {
     navigate("/");
   };
 
+  const handleNavigation = (path) => {
+    // Public routes that don't require authentication
+    const publicRoutes = ["/", "/products", "/about", "/login", "/register"];
+
+    if (publicRoutes.includes(path)) {
+      navigate(path);
+      setShowUserMenu(false);
+      return;
+    }
+
+    // Protected routes that require authentication
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    navigate(path);
+    setShowUserMenu(false);
+  };
+
   return (
     <header className="header">
       <div className="logo">
@@ -22,7 +43,15 @@ const Header = ({ user, categories, setUser }) => {
       </div>
       <nav className="nav-links">
         <Link to="/">Ana Sayfa</Link>
-        <Link to="/products">Ürünler</Link>
+        <Link
+          to="/products"
+          onClick={(e) => {
+            e.preventDefault();
+            handleNavigation("/products");
+          }}
+        >
+          Ürünler
+        </Link>
         <Link to="/about">Hakkımızda</Link>
 
         <div className="category-container">
@@ -34,6 +63,10 @@ const Header = ({ user, categories, setUser }) => {
                   key={category.id}
                   to={`/categories/${category.id}`}
                   className="category-item"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavigation(`/categories/${category.id}`);
+                  }}
                 >
                   {category.name}
                 </Link>
@@ -61,27 +94,45 @@ const Header = ({ user, categories, setUser }) => {
             </button>
             {showUserMenu && (
               <div className="user-dropdown">
-                <Link to="/profile" onClick={() => setShowUserMenu(false)}>
+                <Link
+                  to={`/profile/${user.id}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavigation(`/profile/${user.id}`);
+                  }}
+                >
                   Profilim
                 </Link>
                 {user.userType === "SELLER" && (
                   <>
                     <Link
                       to="/my-products"
-                      onClick={() => setShowUserMenu(false)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleNavigation("/my-products");
+                      }}
                     >
                       Ürünlerim
                     </Link>
                     <Link
                       to="/add-product"
-                      onClick={() => setShowUserMenu(false)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleNavigation("/add-product");
+                      }}
                     >
                       Ürün Ekle
                     </Link>
                   </>
                 )}
                 {user.userType === "ADMIN" && (
-                  <Link to="/admin" onClick={() => setShowUserMenu(false)}>
+                  <Link
+                    to="/admin"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavigation("/admin");
+                    }}
+                  >
                     Admin Paneli
                   </Link>
                 )}
