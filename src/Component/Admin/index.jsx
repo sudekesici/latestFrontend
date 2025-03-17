@@ -230,15 +230,27 @@ const Admin = () => {
           return;
         }
 
-        await axios.delete(
+        // Log the token and request details for debugging
+        console.log("Token:", token);
+        console.log(
+          "Request URL:",
+          `http://localhost:8080/api/v1/admin/products/${productId}?reason=Admin tarafından silindi`
+        );
+
+        const response = await axios.delete(
           `http://localhost:8080/api/v1/admin/products/${productId}?reason=Admin tarafından silindi`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
             },
           }
         );
-        fetchProducts();
+
+        if (response.status === 200) {
+          setSuccessMessage("Ürün başarıyla silindi");
+          fetchProducts();
+        }
       } catch (err) {
         console.error("Error deleting product:", err);
         if (err.response?.status === 403) {
