@@ -65,6 +65,7 @@ function CategoryPage() {
 
   return (
     <div className="category-page">
+      sercan
       <div className="category-content">
         <h2 className="category-title">{category.name}</h2>
         <p className="category-description">{category.description}</p>

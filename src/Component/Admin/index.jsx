@@ -186,14 +186,32 @@ const Admin = () => {
   const handleProductUpdate = async () => {
     try {
       const token = localStorage.getItem("token");
+      const userType = localStorage.getItem("userType");
+
+      console.log("Update attempt with:", {
+        token: token ? "Bearer " + token.substring(0, 20) + "..." : null,
+        userType,
+        productId: selectedProduct.id,
+      });
+
       if (!token) {
         setError("Oturum süreniz dolmuş olabilir. Lütfen tekrar giriş yapın.");
         return;
       }
 
+      const updateData = {
+        title: editFormData.title,
+        price: parseFloat(editFormData.price),
+        stock: parseInt(editFormData.stock),
+        status: editFormData.status,
+        categoryId: parseInt(editFormData.categoryId),
+      };
+
+      console.log("Sending update data:", updateData);
+
       const response = await axios.put(
         `http://localhost:8080/api/v1/admin/products/${selectedProduct.id}`,
-        editFormData,
+        updateData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -202,19 +220,30 @@ const Admin = () => {
         }
       );
 
-      if (response.status === 200) {
-        setSuccessMessage("Ürün başarıyla güncellendi");
-        setShowEditForm(false);
-        fetchProducts();
-      }
+      console.log("Update response:", response.data);
+
+      setShowEditForm(false);
+      await fetchProducts();
+      setSuccessMessage("Ürün başarıyla güncellendi");
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
-      console.error("Error updating product:", err);
+      console.error("Update error details:", {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data,
+        headers: err.config?.headers,
+      });
+
       if (err.response?.status === 403) {
-        setError("Bu işlemi gerçekleştirmek için yetkiniz bulunmamaktadır.");
+        setError(
+          "Bu işlemi gerçekleştirmek için yetkiniz bulunmamaktadır. Lütfen admin olarak giriş yaptığınızdan emin olun."
+        );
       } else if (err.response?.status === 401) {
         setError("Oturum süreniz dolmuş olabilir. Lütfen tekrar giriş yapın.");
       } else {
-        setError("Ürün güncellenirken bir hata oluştu.");
+        setError(
+          err.response?.data?.message || "Ürün güncellenirken bir hata oluştu."
+        );
       }
     }
   };

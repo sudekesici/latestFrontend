@@ -1,6 +1,7 @@
+// Login.jsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios"; // axios import et
+import axios from "axios";
 import "./Login.css";
 
 const Login = ({ updateUser }) => {
@@ -9,12 +10,13 @@ const Login = ({ updateUser }) => {
     password: "",
   });
 
-  const [errorMessage, setErrorMessage] = useState(""); // Hata mesajı için durum ekledik
-  const navigate = useNavigate(); // Yönlendirme için useNavigate
+  const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Giriş yapılıyor:", formData);
+    setErrorMessage("");
 
     try {
       const response = await axios.post(
@@ -22,23 +24,43 @@ const Login = ({ updateUser }) => {
         formData
       );
 
+      console.log("Login response:", response.data);
+
       if (response.data.token) {
-        // Token'ı localStorage'a kaydet
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("userType", response.data.userType);
-        console.log(response.data.token);
-        console.log(response.data.userType);
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            id: response.data.id,
+            email: response.data.email,
+            userType: response.data.userType,
+            name: response.data.name,
+          })
+        );
 
-        updateUser(); // Kullanıcı bilgisini güncelle
-        navigate("/");
+        console.log("Stored auth info:", {
+          token: response.data.token,
+          userType: response.data.userType,
+        });
+
+        updateUser();
+
+        // Eğer kullanıcı SELLER ise my-products sayfasına yönlendir
+        if (response.data.userType === "SELLER") {
+          navigate("/my-products");
+        } else {
+          navigate("/");
+        }
       } else {
         setErrorMessage("Giriş yaparken bir sorun oluştu.");
       }
     } catch (error) {
+      console.error("Login error:", error);
       setErrorMessage(
-        "Giriş başarısız. Lütfen e-posta ve şifrenizi kontrol edin."
+        error.response?.data?.message ||
+          "Giriş başarısız. Lütfen e-posta ve şifrenizi kontrol edin."
       );
-      console.error("Login failed:", error);
     }
   };
 
@@ -53,10 +75,7 @@ const Login = ({ updateUser }) => {
     <div className="login-container">
       <div className="login-box">
         <h2>Giriş Yap</h2>
-        {errorMessage && (
-          <div className="error-message">{errorMessage}</div>
-        )}{" "}
-        {/* Hata mesajını göster */}
+        {errorMessage && <div className="error-message">{errorMessage}</div>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <input

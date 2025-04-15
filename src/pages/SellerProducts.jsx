@@ -1,3 +1,4 @@
+// SellerProducts.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -13,27 +14,42 @@ const SellerProducts = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editFormData, setEditFormData] = useState({
     title: "",
+    description: "",
     price: "",
     stock: "",
     status: "",
     categoryId: "",
+    type: "FOOD",
+    shippingDetails: "",
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchProducts();
-    fetchCategories();
+    checkAuthAndFetchData();
   }, []);
+
+  const checkAuthAndFetchData = async () => {
+    const token = localStorage.getItem("token");
+    const userType = localStorage.getItem("userType");
+
+    console.log("Auth Check:", {
+      hasToken: !!token,
+      userType: userType,
+    });
+
+    if (!token || userType !== "SELLER") {
+      setError("Bu sayfaya erişim yetkiniz yok");
+      setTimeout(() => navigate("/login"), 2000);
+      return;
+    }
+
+    await Promise.all([fetchProducts(), fetchCategories()]);
+  };
 
   const fetchProducts = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-
       const response = await axios.get(
         "http://localhost:8080/api/v1/seller/products",
         {
@@ -43,10 +59,11 @@ const SellerProducts = () => {
           },
         }
       );
+      console.log("Fetched products:", response.data);
       setProducts(response.data);
       setLoading(false);
     } catch (error) {
-      console.error("Ürünler yüklenirken hata:", error);
+      console.error("Products fetch error:", error);
       setError("Ürünler yüklenirken bir hata oluştu.");
       setLoading(false);
     }
@@ -57,9 +74,10 @@ const SellerProducts = () => {
       const response = await axios.get(
         "http://localhost:8080/api/v1/categories"
       );
+      console.log("Fetched categories:", response.data);
       setCategories(response.data);
     } catch (error) {
-      console.error("Kategoriler yüklenirken hata:", error);
+      console.error("Categories fetch error:", error);
     }
   };
 
@@ -77,22 +95,30 @@ const SellerProducts = () => {
           }
         );
         setProducts(products.filter((product) => product.id !== productId));
+        alert("Ürün başarıyla silindi");
       } catch (error) {
-        console.error("Ürün silinirken hata:", error);
-        alert("Ürün silinirken bir hata oluştu.");
+        console.error("Delete error:", error);
+        if (error.response?.status === 403) {
+          alert("Bu ürünü silme yetkiniz bulunmuyor");
+        } else {
+          alert("Ürün silinirken bir hata oluştu");
+        }
       }
     }
   };
 
   const handleEdit = (product) => {
-    console.log(product);
+    console.log("Editing product:", product);
     setSelectedProduct(product);
     setEditFormData({
       title: product.title,
+      description: product.description,
       price: product.price,
       stock: product.stock,
       status: product.status,
       categoryId: product.category.id,
+      type: product.type || "FOOD",
+      shippingDetails: product.shippingDetails,
     });
     setShowEditModal(true);
   };
@@ -101,9 +127,26 @@ const SellerProducts = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      await axios.put(
+      const userType = localStorage.getItem("userType");
+
+      if (!token || userType !== "SELLER") {
+        throw new Error("Yetkilendirme hatası");
+      }
+
+      const updateData = {
+        title: editFormData.title,
+        description: editFormData.description,
+        price: parseFloat(editFormData.price),
+        stock: parseInt(editFormData.stock),
+        status: editFormData.status,
+        categoryId: parseInt(editFormData.categoryId),
+        type: editFormData.type,
+        shippingDetails: editFormData.shippingDetails,
+      };
+
+      const response = await axios.put(
         `http://localhost:8080/api/v1/seller/products/${selectedProduct.id}`,
-        editFormData,
+        updateData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -112,18 +155,32 @@ const SellerProducts = () => {
         }
       );
 
-      setProducts(
-        products.map((product) =>
-          product.id === selectedProduct.id
-            ? { ...product, ...editFormData }
-            : product
-        )
-      );
+      // Modal'ı kapat
       setShowEditModal(false);
       setSelectedProduct(null);
+
+      // Ürünleri yeniden yükle
+      await fetchProducts();
     } catch (error) {
-      console.error("Ürün güncellenirken hata:", error);
-      alert("Ürün güncellenirken bir hata oluştu.");
+      console.error("Update error details:", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        headers: error.config?.headers,
+      });
+
+      if (error.response?.status === 403) {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          navigate("/login");
+          return;
+        }
+        alert("Bu ürünü düzenleme yetkiniz bulunmuyor.");
+      } else {
+        alert(
+          error.response?.data?.message || "Ürün güncellenirken bir hata oluştu"
+        );
+      }
     }
   };
 
@@ -245,6 +302,19 @@ const SellerProducts = () => {
                 />
               </div>
               <div className="form-group">
+                <label>Açıklama</label>
+                <textarea
+                  value={editFormData.description}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      description: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+              <div className="form-group">
                 <label>Fiyat</label>
                 <input
                   type="number"
@@ -311,6 +381,18 @@ const SellerProducts = () => {
                     </option>
                   ))}
                 </select>
+              </div>
+              <div className="form-group">
+                <label>Kargo Detayları</label>
+                <textarea
+                  value={editFormData.shippingDetails}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      shippingDetails: e.target.value,
+                    })
+                  }
+                />
               </div>
               <div className="form-actions">
                 <button

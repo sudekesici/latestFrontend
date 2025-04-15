@@ -26,7 +26,11 @@ const AddProduct = () => {
   const checkAuthorization = () => {
     const token = localStorage.getItem("token");
     const userType = localStorage.getItem("userType");
-    console.log("User Type:", userType); // Debug için
+
+    console.log("Authorization check:", {
+      hasToken: !!token,
+      userType: userType,
+    });
 
     if (!token) {
       setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
@@ -47,24 +51,13 @@ const AddProduct = () => {
 
   const fetchCategories = async () => {
     try {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
-        "http://localhost:8080/api/v1/categories",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        "http://localhost:8080/api/v1/categories"
       );
       setCategories(response.data);
     } catch (error) {
       console.error("Kategoriler yüklenirken hata:", error);
-      if (error.response?.status === 403) {
-        setError("Bu işlem için yetkiniz bulunmuyor.");
-        setTimeout(() => navigate("/"), 2000);
-      } else {
-        setError("Kategoriler yüklenirken bir hata oluştu.");
-      }
+      setError("Kategoriler yüklenirken bir hata oluştu.");
     }
   };
 
@@ -89,6 +82,12 @@ const AddProduct = () => {
     setLoading(true);
     setError(null);
 
+    if (formData.description.length < 10) {
+      setError("Ürün açıklaması en az 10 karakter olmalıdır!");
+      setLoading(false);
+      return;
+    }
+
     if (!checkAuthorization()) {
       setLoading(false);
       return;
@@ -96,24 +95,24 @@ const AddProduct = () => {
 
     try {
       const token = localStorage.getItem("token");
+      console.log("Token:", token);
 
-      // Form verilerini hazırla
       const productData = {
-        title: formData.title,
-        description: formData.description,
+        title: formData.title.trim(),
+        description: formData.description.trim(),
         price: parseFloat(formData.price),
         stock: parseInt(formData.stock),
         categoryId: parseInt(formData.categoryId),
-        shippingDetails: formData.shippingDetails,
-        status: "PENDING_REVIEW",
+        shippingDetails: formData.shippingDetails.trim(),
         type: "FOOD",
+        images: [],
         tags: [],
         ingredients: "",
         preparationTime: "",
-        images: [],
       };
 
-      // Önce ürün bilgilerini gönder
+      console.log("Sending product data:", productData);
+
       const response = await axios.post(
         "http://localhost:8080/api/v1/seller/products",
         productData,
@@ -125,35 +124,52 @@ const AddProduct = () => {
         }
       );
 
-      // Eğer ürün başarıyla eklendiyse ve resimler varsa
+      console.log("Product creation response:", response.data);
+
+      // Eğer resimler seçildiyse yükle
       if (response.data && formData.images.length > 0) {
         const productId = response.data.id;
         const imageFormData = new FormData();
+
         formData.images.forEach((image) => {
           imageFormData.append("images", image);
         });
 
-        // Resimleri ayrı bir endpoint'e gönder
-        await axios.post(
-          `http://localhost:8080/api/v1/seller/products/${productId}/images`,
-          imageFormData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
+        console.log("Uploading images for product:", productId);
+
+        try {
+          await axios.post(
+            `http://localhost:8080/api/v1/seller/products/${productId}/images`,
+            imageFormData,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+        } catch (imageError) {
+          console.error("Image upload error:", imageError);
+          // Resim yükleme hatası olsa bile ürün eklendiği için devam et
+        }
       }
 
       navigate("/my-products");
     } catch (error) {
-      console.error("Ürün eklenirken hata:", error);
+      console.error("Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        headers: error.config?.headers,
+      });
+
       if (error.response?.status === 403) {
         setError(
           "Bu işlem için yetkiniz bulunmuyor. Lütfen satıcı hesabı ile giriş yapın."
         );
-        setTimeout(() => navigate("/"), 2000);
+        localStorage.clear(); // Token geçersiz olabilir
+
+        setTimeout(() => navigate("/login"), 2000);
       } else if (error.response?.status === 401) {
         setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
         setTimeout(() => navigate("/login"), 2000);
@@ -192,7 +208,10 @@ const AddProduct = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="description">Ürün Açıklaması</label>
+          <label htmlFor="description">
+            Ürün Açıklaması ({formData.description.length} karakter - minimum 10
+            karakter)
+          </label>
           <textarea
             id="description"
             name="description"
@@ -200,7 +219,20 @@ const AddProduct = () => {
             onChange={handleChange}
             required
             rows="4"
+            className={
+              formData.description.length > 0 &&
+              formData.description.length < 10
+                ? "invalid"
+                : ""
+            }
           />
+          {formData.description.length > 0 &&
+            formData.description.length < 10 && (
+              <small className="error-text">
+                Ürün açıklaması en az 10 karakter olmalıdır.{" "}
+                {10 - formData.description.length} karakter daha yazmalısınız.
+              </small>
+            )}
         </div>
 
         <div className="form-group">
@@ -261,7 +293,7 @@ const AddProduct = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="images">Ürün Görselleri</label>
+          <label htmlFor="images">Ürün Görselleri (Opsiyonel)</label>
           <input
             type="file"
             id="images"
@@ -269,7 +301,6 @@ const AddProduct = () => {
             onChange={handleImageChange}
             multiple
             accept="image/*"
-            required
           />
         </div>
 

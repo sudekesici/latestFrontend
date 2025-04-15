@@ -54,7 +54,7 @@ const Header = ({ user, categories, setUser }) => {
         </Link>
         <Link to="/about">Hakkımızda</Link>
 
-        <div className="category-container">
+        {/* <div className="category-container">
           <span className="category-trigger">Kategoriler</span>
           <div className="category-dropdown">
             {categories?.length > 0 ? (
@@ -75,7 +75,7 @@ const Header = ({ user, categories, setUser }) => {
               <span className="category-item">Yükleniyor...</span>
             )}
           </div>
-        </div>
+        </div> */}
       </nav>
 
       <div className="auth-section">
