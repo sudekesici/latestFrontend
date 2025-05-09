@@ -9,9 +9,9 @@ import Challenge from "./pages/Challenge";
 import ProductList from "./Component/ProductList";
 import Profile from "./Component/Profile";
 import Admin from "./Component/Admin";
-import CategoryPage from "./pages/CategoryPage";
-import SellerProducts from "./pages/SellerProducts";
-import AddProduct from "./pages/AddProduct";
+import SellerDashboard from "./SellerDashboard";
+import SellerProfile from "./Component/Seller/SellerProfile";
+import ProductDetail from "./Component/ProductDetail/ProductDetail";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -84,8 +84,8 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/challenge" element={<Challenge />} />
         <Route path="/products" element={<ProductList />} />
-        <Route path="/categories/:id" element={<CategoryPage />} />
-
+        <Route path="/products/:id" element={<ProductDetail />} />
+        <Route path="/seller/:id" element={<SellerProfile />} />
         <Route
           path="/profile/:id"
           element={user ? <Profile /> : <Navigate to="/login" />}
@@ -94,20 +94,15 @@ function App() {
           path="/admin"
           element={user?.userType === "ADMIN" ? <Admin /> : <Navigate to="/" />}
         />
+        {/* Satıcı dashboard'u için yeni route */}
         <Route
-          path="/my-products"
+          path="/seller-dashboard"
           element={
             user?.userType === "SELLER" ? (
-              <SellerProducts />
+              <SellerDashboard />
             ) : (
               <Navigate to="/" />
             )
-          }
-        />
-        <Route
-          path="/add-product"
-          element={
-            user?.userType === "SELLER" ? <AddProduct /> : <Navigate to="/" />
           }
         />
       </Routes>

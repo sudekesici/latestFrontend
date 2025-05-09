@@ -1,20 +1,23 @@
-import axios from "axios";
+// ProductList.jsx
 import { useEffect, useState } from "react";
-import "./ProductList.css";
 import { useNavigate } from "react-router-dom";
+import {
+  FaHeart,
+  FaRegHeart,
+  FaUserPlus,
+  FaUserCheck,
+  FaShoppingCart,
+} from "react-icons/fa";
+import axios from "axios";
+import "./ProductList.css";
 
-// Public API instance for product listing
-const publicApi = axios.create({
+// API instance
+const api = axios.create({
   baseURL: "http://localhost:8080/api/v1",
 });
 
-// Authenticated API instance for user actions
-const authApi = axios.create({
-  baseURL: "http://localhost:8080/api/v1",
-});
-
-// Request interceptor for authenticated API
-authApi.interceptors.request.use(
+// Request interceptor
+api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -22,30 +25,7 @@ authApi.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Response interceptor for authenticated API
-authApi.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      const protectedRoutes = [
-        "/cart",
-        "/orders",
-        "/my-products",
-        "/add-product",
-        "/admin",
-      ];
-      if (protectedRoutes.some((route) => error.config.url.includes(route))) {
-        localStorage.removeItem("token");
-        window.location.href = "/login";
-      }
-    }
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 function ProductList() {
@@ -53,24 +33,53 @@ function ProductList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [favorites, setFavorites] = useState([]);
+  const [followedSellers, setFollowedSellers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("default");
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState(null);
   const navigate = useNavigate();
 
+  // Kullanıcı durumunu kontrol et
+  useEffect(() => {
+    console.log("user" + userRole);
+    const token = localStorage.getItem("token");
+    if (token) {
+      setIsLoggedIn(true);
+      const role = localStorage.getItem("userRole");
+      setUserRole(role);
+    }
+  }, []);
+
+  // Verileri yükle
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [productsResponse, categoriesResponse] = await Promise.all([
-          publicApi.get("/products"),
-          publicApi.get("/categories"),
+        const [productsRes, categoriesRes] = await Promise.all([
+          api.get("/products"),
+          api.get("/categories"),
         ]);
 
-        setProducts(productsResponse.data.content);
-        setCategories(categoriesResponse.data);
+        setProducts(productsRes.data.content);
+        setCategories(categoriesRes.data);
+
+        if (isLoggedIn && userRole === "BUYER") {
+          try {
+            const [favoritesRes, followingRes] = await Promise.all([
+              api.get("/buyer/favorites"),
+              api.get("/buyer/following"),
+            ]);
+            setFavorites(favoritesRes.data.map((f) => f.id));
+            setFollowedSellers(followingRes.data.map((s) => s.id));
+          } catch (error) {
+            console.error("Favori ve takip bilgileri alınamadı:", error);
+          }
+        }
       } catch (err) {
-        console.error("Veri alınırken hata oluştu:", err);
+        console.error("Veri yükleme hatası:", err);
         setError("Veriler yüklenirken bir hata oluştu.");
       } finally {
         setLoading(false);
@@ -78,9 +87,97 @@ function ProductList() {
     };
 
     fetchData();
-  }, [navigate]);
+  }, [isLoggedIn, userRole]);
 
-  // Filtreleme ve sıralama fonksiyonları
+  // Favori işlemleri
+  const handleToggleFavorite = async (productId, event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const response = await api.post(
+        `/api/v1/buyer/favorites/toggle/${productId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        setFavorites((prev) =>
+          prev.includes(productId)
+            ? prev.filter((id) => id !== productId)
+            : [...prev, productId]
+        );
+      }
+    } catch (error) {
+      console.error("Favori işlemi başarısız:", error);
+      if (error.response?.status === 403) {
+        // Kullanıcı BUYER rolüne sahip değilse
+        alert(
+          "Bu işlemi gerçekleştirmek için alıcı hesabına sahip olmanız gerekmektedir."
+        );
+      }
+    }
+  };
+
+  // Takip işlemleri
+  const handleToggleFollow = async (sellerId, event) => {
+    event.stopPropagation();
+
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      if (followedSellers.includes(sellerId)) {
+        await api.delete(`/buyer/unfollow/${sellerId}`);
+        setFollowedSellers((prev) => prev.filter((id) => id !== sellerId));
+      } else {
+        await api.post(`/buyer/follow/${sellerId}`);
+        setFollowedSellers((prev) => [...prev, sellerId]);
+      }
+    } catch (error) {
+      console.error("Takip işlemi başarısız:", error);
+      if (error.response?.status === 401) {
+        navigate("/login");
+      } else {
+        alert("Takip işlemi gerçekleştirilemedi.");
+      }
+    }
+  };
+
+  // Sepete ekleme işlemi
+  const handleAddToCart = async (productId, event) => {
+    event.stopPropagation();
+
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      await api.post("/cart/add", { productId, quantity: 1 });
+      alert("Ürün sepete eklendi!");
+    } catch (error) {
+      console.error("Sepete ekleme hatası:", error);
+      if (error.response?.status === 401) {
+        navigate("/login");
+      } else {
+        alert("Ürün sepete eklenemedi.");
+      }
+    }
+  };
+
+  // Filtreleme ve sıralama
   const filteredAndSortedProducts = () => {
     let filtered = [...products];
 
@@ -102,7 +199,7 @@ function ProductList() {
       );
     }
 
-    // Fiyat aralığı filtresi
+    // Fiyat filtresi
     if (priceRange.min !== "") {
       filtered = filtered.filter(
         (product) => product.price >= parseFloat(priceRange.min)
@@ -150,154 +247,189 @@ function ProductList() {
     setPriceRange({ min: "", max: "" });
   };
 
-  if (loading)
+  if (loading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
       </div>
     );
+  }
 
-  if (error) return <div className="error">{error}</div>;
+  if (error) {
+    return <div className="error-message">{error}</div>;
+  }
 
   const filteredProducts = filteredAndSortedProducts();
 
   return (
-    <div>
-      <div className="products-container">
-        <div className="filters-section">
-          <div className="search-container">
+    <div className="products-container">
+      {/* Filtreler */}
+      <div className="filters-section">
+        <div className="search-container">
+          <input
+            type="text"
+            placeholder="Ürün Ara..."
+            className="search-input"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <div className="filter-options">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="category-select"
+          >
+            <option value="all">Tüm Kategoriler</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="sort-select"
+          >
+            <option value="default">Varsayılan Sıralama</option>
+            <option value="price-asc">Fiyat (Düşükten Yükseğe)</option>
+            <option value="price-desc">Fiyat (Yüksekten Düşüğe)</option>
+            <option value="name-asc">İsim (A-Z)</option>
+            <option value="name-desc">İsim (Z-A)</option>
+          </select>
+
+          <div className="price-range">
             <input
-              type="text"
-              placeholder="Ürün Ara..."
-              className="search-input"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              type="number"
+              name="min"
+              placeholder="Min Fiyat"
+              value={priceRange.min}
+              onChange={handlePriceRangeChange}
+              className="price-input"
+              min="0"
+            />
+            <input
+              type="number"
+              name="max"
+              placeholder="Max Fiyat"
+              value={priceRange.max}
+              onChange={handlePriceRangeChange}
+              className="price-input"
+              min="0"
             />
           </div>
 
-          <div className="filter-options">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="category-select"
-            >
-              <option value="all">Tüm Kategoriler</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="sort-select"
-            >
-              <option value="default">Varsayılan Sıralama</option>
-              <option value="price-asc">Fiyat (Düşükten Yükseğe)</option>
-              <option value="price-desc">Fiyat (Yüksekten Düşüğe)</option>
-              <option value="name-asc">İsim (A-Z)</option>
-              <option value="name-desc">İsim (Z-A)</option>
-            </select>
-
-            <div className="price-range">
-              <input
-                type="number"
-                name="min"
-                placeholder="Min Fiyat"
-                value={priceRange.min}
-                onChange={handlePriceRangeChange}
-                className="price-input"
-              />
-              <input
-                type="number"
-                name="max"
-                placeholder="Max Fiyat"
-                value={priceRange.max}
-                onChange={handlePriceRangeChange}
-                className="price-input"
-              />
-            </div>
-
-            <button onClick={resetFilters} className="reset-filters">
-              Filtreleri Sıfırla
-            </button>
-          </div>
+          <button onClick={resetFilters} className="reset-filters">
+            Filtreleri Sıfırla
+          </button>
         </div>
-
-        <h2 className="product-list-title">
-          {filteredProducts.length > 0
-            ? `${filteredProducts.length} Ürün Bulundu`
-            : "Ürün Bulunamadı"}
-        </h2>
-
-        {filteredProducts.length === 0 ? (
-          <div className="no-results">
-            Arama kriterlerinize uygun ürün bulunamadı.
-          </div>
-        ) : (
-          <ProductGrid products={filteredProducts} />
-        )}
       </div>
-    </div>
-  );
-}
 
-function ProductGrid({ products }) {
-  const navigate = useNavigate();
+      {/* Ürün Listesi */}
+      <h2 className="product-list-title">
+        {filteredProducts.length > 0
+          ? `${filteredProducts.length} Ürün Bulundu`
+          : "Ürün Bulunamadı"}
+      </h2>
 
-  const handleAddToCart = async (productId) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-
-      await authApi.post("/cart/add", {
-        productId,
-        quantity: 1,
-      });
-
-      alert("Ürün sepete eklendi!");
-    } catch (error) {
-      console.error("Sepete eklenirken hata:", error);
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        navigate("/login");
-      } else {
-        alert("Ürün sepete eklenemedi.");
-      }
-    }
-  };
-
-  return (
-    <div className="products-grid">
-      {products.map((product) => (
-        <div key={product.id} className="product-card">
-          <div className="product-image">
-            <img
-              src={`http://localhost:8080/images/${product.images[0]}`}
-              alt={product.title}
-            />
-          </div>
-          <div className="product-details">
-            <h4>{product.title}</h4>
-            <p className="product-description">
-              {product.description?.substring(0, 100)}
-              {product.description?.length > 100 ? "..." : ""}
-            </p>
-            <p className="product-category">{product.category?.name}</p>
-            <p className="product-price">{product.price} TL</p>
-            <button
-              className="add-to-cart"
-              onClick={() => handleAddToCart(product.id)}
-            >
-              Sepete Ekle
-            </button>
-          </div>
+      {filteredProducts.length === 0 ? (
+        <div className="no-results">
+          Arama kriterlerinize uygun ürün bulunamadı.
         </div>
-      ))}
+      ) : (
+        <div className="products-grid">
+          {filteredProducts.map((product) => (
+            <div key={product.id} className="product-card">
+              <div className="product-image">
+                <img
+                  src={`http://localhost:8080/images/${product.images[0]}`}
+                  alt={product.title}
+                  onClick={() => navigate(`/products/${product.id}`)}
+                />
+                {isLoggedIn && userRole === "BUYER" && (
+                  <button
+                    className={`favorite-button ${
+                      favorites.includes(product.id) ? "favorited" : ""
+                    }`}
+                    onClick={(e) => handleToggleFavorite(product.id, e)}
+                    aria-label={
+                      favorites.includes(product.id)
+                        ? "Favorilerden çıkar"
+                        : "Favorilere ekle"
+                    }
+                  >
+                    {favorites.includes(product.id) ? (
+                      <FaHeart />
+                    ) : (
+                      <FaRegHeart />
+                    )}
+                  </button>
+                )}
+              </div>
+              <div className="product-details">
+                <h4 onClick={() => navigate(`/products/${product.id}`)}>
+                  {product.title}
+                </h4>
+                <p className="product-description">
+                  {product.description?.substring(0, 100)}
+                  {product.description?.length > 100 ? "..." : ""}
+                </p>
+                <p className="product-category">{product.category?.name}</p>
+                <p className="product-price">{product.price} TL</p>
+
+                <div className="seller-info">
+                  <img
+                    src={product.seller.profilePicture || "/default-avatar.png"}
+                    alt={product.seller.firstName}
+                    className="seller-avatar"
+                    onClick={() => navigate(`/seller/${product.seller.id}`)}
+                  />
+                  <div className="seller-details">
+                    <span
+                      className="seller-name"
+                      onClick={() => navigate(`/seller/${product.seller.id}`)}
+                    >
+                      {product.seller.firstName} {product.seller.lastName}
+                    </span>
+                    {isLoggedIn && userRole === "BUYER" && (
+                      <button
+                        className={`follow-button ${
+                          followedSellers.includes(product.seller.id)
+                            ? "following"
+                            : ""
+                        }`}
+                        onClick={(e) =>
+                          handleToggleFollow(product.seller.id, e)
+                        }
+                      >
+                        {followedSellers.includes(product.seller.id) ? (
+                          <>
+                            <FaUserCheck /> Takipte
+                          </>
+                        ) : (
+                          <>
+                            <FaUserPlus /> Takip Et
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  className="add-to-cart"
+                  onClick={(e) => handleAddToCart(product.id, e)}
+                >
+                  <FaShoppingCart /> Sepete Ekle
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

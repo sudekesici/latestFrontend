@@ -106,22 +106,13 @@ const Header = ({ user, categories, setUser }) => {
                 {user.userType === "SELLER" && (
                   <>
                     <Link
-                      to="/my-products"
+                      to="/seller-dashboard"
                       onClick={(e) => {
                         e.preventDefault();
-                        handleNavigation("/my-products");
+                        handleNavigation("/seller-dashboard");
                       }}
                     >
-                      Ürünlerim
-                    </Link>
-                    <Link
-                      to="/add-product"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleNavigation("/add-product");
-                      }}
-                    >
-                      Ürün Ekle
+                      Kullanici Paneli
                     </Link>
                   </>
                 )}

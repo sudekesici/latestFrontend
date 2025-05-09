@@ -48,7 +48,7 @@ const Login = ({ updateUser }) => {
 
         // Eğer kullanıcı SELLER ise my-products sayfasına yönlendir
         if (response.data.userType === "SELLER") {
-          navigate("/my-products");
+          navigate("/seller-dashboard");
         } else {
           navigate("/");
         }
