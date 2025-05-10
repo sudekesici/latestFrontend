@@ -1,11 +1,11 @@
-// Profile.jsx
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./Profile.css";
 
 const Profile = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,6 +14,8 @@ const Profile = () => {
   const [favorites, setFavorites] = useState([]);
   const [following, setFollowing] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -22,9 +24,6 @@ const Profile = () => {
     bio: "",
   });
 
-  useEffect(() => {
-    console.log("user" + user);
-  }, []);
   useEffect(() => {
     fetchProfile();
     fetchFavorites();
@@ -109,29 +108,50 @@ const Profile = () => {
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      try {
-        const base64 = await convertToBase64(file);
-        setFormData((prev) => ({
-          ...prev,
-          profilePicture: base64,
-        }));
-        setUser((prev) => ({
-          ...prev,
-          profilePicture: base64,
-        }));
-      } catch (error) {
-        console.error("Dosya dönüştürme hatası:", error);
-      }
+      setSelectedFile(file);
+      // Önizleme URL'i oluştur
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const convertToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-    });
+  const handleSaveProfilePicture = async () => {
+    if (!selectedFile) return;
+
+    try {
+      setIsUploading(true);
+      const token = localStorage.getItem("token");
+      const formData = new FormData();
+      formData.append("profilePicture", selectedFile);
+
+      const response = await axios.post(
+        `http://localhost:8080/api/v1/users/${id}/profile-picture`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setUser(response.data);
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      setIsUploading(false);
+    } catch (error) {
+      console.error("Profil fotoğrafı yüklenirken hata:", error);
+      setError("Profil fotoğrafı yüklenirken bir hata oluştu.");
+      setIsUploading(false);
+    }
+  };
+
+  const handleCancelUpload = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
   };
 
   const handleSubmit = async (e) => {
@@ -217,7 +237,12 @@ const Profile = () => {
       <div className="profile-header">
         <div className="profile-avatar">
           <img
-            src={user.profilePicture || "/default-avatar.png"}
+            src={
+              previewUrl ||
+              (user.profilePicture
+                ? `http://localhost:8080/profiles/${user.profilePicture}`
+                : "/default-avatar.png")
+            }
             alt="Profil"
             className="profile-image"
           />
@@ -236,6 +261,32 @@ const Profile = () => {
             </div>
           )}
         </div>
+        {previewUrl && (
+          <div className="profile-picture-actions">
+            <button
+              className="save-picture-button"
+              onClick={handleSaveProfilePicture}
+              disabled={isUploading}
+            >
+              {isUploading ? (
+                <>
+                  <i className="fas fa-spinner fa-spin"></i> Yükleniyor...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-save"></i> Kaydet
+                </>
+              )}
+            </button>
+            <button
+              className="cancel-picture-button"
+              onClick={handleCancelUpload}
+              disabled={isUploading}
+            >
+              <i className="fas fa-times"></i> İptal
+            </button>
+          </div>
+        )}
         <h2>
           {user.firstName} {user.lastName}
         </h2>
@@ -406,7 +457,11 @@ const Profile = () => {
               <div key={seller.id} className="seller-card">
                 <div className="seller-header">
                   <img
-                    src={seller.profilePicture || "/default-avatar.png"}
+                    src={
+                      seller.profilePicture
+                        ? `http://localhost:8080/profiles/${seller.profilePicture}`
+                        : "/default-avatar.png"
+                    }
                     alt={seller.firstName}
                   />
                   <div className="seller-stats">

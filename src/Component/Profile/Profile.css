@@ -421,3 +421,51 @@
     flex-direction: column;
   }
 }
+
+.profile-picture-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.save-picture-button,
+.cancel-picture-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.save-picture-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+.save-picture-button:hover {
+  background-color: #388e3c;
+}
+
+.save-picture-button:disabled {
+  background-color: #a5d6a7;
+  cursor: not-allowed;
+}
+
+.cancel-picture-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.cancel-picture-button:hover {
+  background-color: #d32f2f;
+}
+
+.cancel-picture-button:disabled {
+  background-color: #ef9a9a;
+  cursor: not-allowed;
+}

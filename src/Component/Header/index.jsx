@@ -86,7 +86,11 @@ const Header = ({ user, categories, setUser }) => {
               onClick={() => setShowUserMenu(!showUserMenu)}
             >
               <img
-                src={user.profileImage || "/default-avatar.png"}
+                src={
+                  user.profilePicture
+                    ? `http://localhost:8080/profiles/${user.profilePicture}`
+                    : "/default-avatar.png"
+                }
                 alt="Profil"
                 className="user-avatar"
               />

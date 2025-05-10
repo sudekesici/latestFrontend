@@ -387,7 +387,11 @@ function ProductList() {
 
                 <div className="product-list-seller-info">
                   <img
-                    src={product.seller.profilePicture || "/default-avatar.png"}
+                    src={
+                      product.seller.profilePicture
+                        ? `http://localhost:8080/profiles/${product.seller.profilePicture}`
+                        : "/default-avatar.png"
+                    }
                     alt={product.seller.firstName}
                     className="product-list-seller-avatar"
                     onClick={() => navigate(`/seller/${product.seller.id}`)}

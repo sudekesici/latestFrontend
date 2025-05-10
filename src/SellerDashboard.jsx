@@ -395,7 +395,11 @@ const SellerDashboard = () => {
         <div className="profile-info-container">
           <div className="profile-image-wrapper">
             <img
-              src={user.profilePicture || "/default-avatar.png"}
+              src={
+                user.profilePicture
+                  ? `http://localhost:8080/profiles/${user.profilePicture}`
+                  : "/default-avatar.png"
+              }
               alt="Profil"
               className="profile-image"
             />
