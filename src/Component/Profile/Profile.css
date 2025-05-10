@@ -237,11 +237,6 @@
   transform: translateY(-5px);
 }
 
-.product-image {
-  position: relative;
-  padding-top: 100%;
-}
-
 .product-image img {
   position: absolute;
   top: 0;

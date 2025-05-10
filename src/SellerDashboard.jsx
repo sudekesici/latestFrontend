@@ -1,8 +1,8 @@
-// SellerDashboard.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./SellerDashboard.css";
+import { head } from "framer-motion/client";
 
 const SellerDashboard = () => {
   const navigate = useNavigate();
@@ -243,22 +243,6 @@ const SellerDashboard = () => {
     }
   };
 
-  const handleNewProductChange = (e) => {
-    const { name, value } = e.target;
-    setNewProductData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    setNewProductData((prev) => ({
-      ...prev,
-      images: files,
-    }));
-  };
-
   const handleNewProductSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -290,14 +274,12 @@ const SellerDashboard = () => {
         price: parseFloat(newProduct.price),
         stock: parseInt(newProduct.stock),
         categoryId: parseInt(newProduct.categoryId),
-        type: "FOOD", // Eğer gerekiyorsa
+        type: "FOOD",
         images: [],
         tags: [],
         ingredients: "",
         preparationTime: "",
       };
-
-      console.log("Gönderilen ürün verileri:", productData);
 
       const response = await axios.post(
         "http://localhost:8080/api/v1/seller/products",
@@ -310,30 +292,49 @@ const SellerDashboard = () => {
         }
       );
 
-      console.log("Ürün oluşturma yanıtı:", response.data);
-
       // Eğer resimler varsa, ayrı bir istekle resimleri yükle
       if (response.data && newProduct.images.length > 0) {
         const productId = response.data.id;
         const imageFormData = new FormData();
 
+        // Her bir resmi FormData'ya ekle
         newProduct.images.forEach((image) => {
           imageFormData.append("images", image);
         });
 
         try {
-          await axios.post(
+          const token = localStorage.getItem("token");
+          if (!token) {
+            throw new Error("Oturum bilgisi bulunamadı");
+          }
+          console.log("Resim yükleme isteği gönderiliyor...");
+          console.log("Ürün ID:", productId);
+          console.log("Resim sayısı:", newProduct.images.length);
+          console.log("Token:", token.substring(0, 20) + "...");
+          console.log("FormData içeriği:", imageFormData);
+          const uploadResponse = await axios.post(
             `http://localhost:8080/api/v1/seller/products/${productId}/images`,
             imageFormData,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
-                "Content-Type": "multipart/form-data",
               },
+              withCredentials: true,
             }
           );
+
+          console.log("Resim yükleme başarılı:", uploadResponse.data);
         } catch (imageError) {
-          console.error("Resim yükleme hatası:", imageError);
+          console.error("Hata detayları:", {
+            message: imageError.message,
+            response: imageError.response?.data,
+            status: imageError.response?.status,
+            headers: imageError.response?.headers,
+          });
+          setError(
+            "Ürün oluşturuldu fakat resimler yüklenirken bir hata oluştu: " +
+              (imageError.response?.data || imageError.message)
+          );
         }
       }
 
@@ -354,7 +355,6 @@ const SellerDashboard = () => {
         message: error.message,
         response: error.response?.data,
         status: error.response?.status,
-        headers: error.config?.headers,
       });
 
       if (error.response?.status === 403) {
@@ -483,7 +483,11 @@ const SellerDashboard = () => {
           <div key={product.id} className="product-card">
             <div className="product-image-container">
               <img
-                src={product.images[0]?.url || "/placeholder.png"}
+                src={
+                  product.images[0]
+                    ? `http://localhost:8080${product.images[0]}`
+                    : "/placeholder.png"
+                }
                 alt={product.title}
                 className="product-image"
               />
@@ -516,6 +520,7 @@ const SellerDashboard = () => {
           </div>
         ))}
       </div>
+
       {/* Sabit Ürün Ekleme Butonu */}
       <button
         className="add-product-button"
@@ -713,15 +718,43 @@ const SellerDashboard = () => {
                 <label>Ürün Görselleri</label>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/gif"
                   multiple
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files);
+                    // Dosya boyutu kontrolü (5MB)
+                    const validFiles = files.filter(
+                      (file) => file.size <= 5 * 1024 * 1024
+                    );
+                    if (validFiles.length !== files.length) {
+                      setError(
+                        "Bazı dosyalar 5MB boyut sınırını aşıyor ve yüklenmeyecek."
+                      );
+                    }
                     setNewProduct({
                       ...newProduct,
-                      images: Array.from(e.target.files),
-                    })
-                  }
+                      images: validFiles,
+                    });
+                  }}
                 />
+                <small className="help-text">
+                  Desteklenen formatlar: JPG, JPEG, PNG, GIF. Maksimum dosya
+                  boyutu: 5MB
+                </small>
+                {newProduct.images.length > 0 && (
+                  <div className="image-preview">
+                    {newProduct.images.map((file, index) => (
+                      <div key={index} className="preview-item">
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={`Preview ${index + 1}`}
+                          className="preview-image"
+                        />
+                        <span className="file-name">{file.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {error && <div className="error-message">{error}</div>}

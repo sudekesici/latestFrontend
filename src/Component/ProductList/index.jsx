@@ -1,4 +1,3 @@
-// ProductList.jsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -45,7 +44,6 @@ function ProductList() {
 
   // Kullanıcı durumunu kontrol et
   useEffect(() => {
-    console.log("user" + userRole);
     const token = localStorage.getItem("token");
     if (token) {
       setIsLoggedIn(true);
@@ -101,7 +99,7 @@ function ProductList() {
 
     try {
       const response = await api.post(
-        `/api/v1/buyer/favorites/toggle/${productId}`,
+        `/buyer/favorites/toggle/${productId}`,
         {},
         {
           headers: {
@@ -120,7 +118,6 @@ function ProductList() {
     } catch (error) {
       console.error("Favori işlemi başarısız:", error);
       if (error.response?.status === 403) {
-        // Kullanıcı BUYER rolüne sahip değilse
         alert(
           "Bu işlemi gerçekleştirmek için alıcı hesabına sahip olmanız gerekmektedir."
         );
@@ -249,37 +246,37 @@ function ProductList() {
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
+      <div className="product-list-loading">
+        <div className="product-list-spinner"></div>
       </div>
     );
   }
 
   if (error) {
-    return <div className="error-message">{error}</div>;
+    return <div className="product-list-error">{error}</div>;
   }
 
   const filteredProducts = filteredAndSortedProducts();
 
   return (
-    <div className="products-container">
+    <div className="product-list-container">
       {/* Filtreler */}
-      <div className="filters-section">
-        <div className="search-container">
+      <div className="product-list-filters">
+        <div className="product-list-search">
           <input
             type="text"
             placeholder="Ürün Ara..."
-            className="search-input"
+            className="product-list-search-input"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <div className="filter-options">
+        <div className="product-list-filter-options">
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="category-select"
+            className="product-list-category-select"
           >
             <option value="all">Tüm Kategoriler</option>
             {categories.map((category) => (
@@ -292,7 +289,7 @@ function ProductList() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="sort-select"
+            className="product-list-sort-select"
           >
             <option value="default">Varsayılan Sıralama</option>
             <option value="price-asc">Fiyat (Düşükten Yükseğe)</option>
@@ -301,14 +298,14 @@ function ProductList() {
             <option value="name-desc">İsim (Z-A)</option>
           </select>
 
-          <div className="price-range">
+          <div className="product-list-price-range">
             <input
               type="number"
               name="min"
               placeholder="Min Fiyat"
               value={priceRange.min}
               onChange={handlePriceRangeChange}
-              className="price-input"
+              className="product-list-price-input"
               min="0"
             />
             <input
@@ -317,12 +314,12 @@ function ProductList() {
               placeholder="Max Fiyat"
               value={priceRange.max}
               onChange={handlePriceRangeChange}
-              className="price-input"
+              className="product-list-price-input"
               min="0"
             />
           </div>
 
-          <button onClick={resetFilters} className="reset-filters">
+          <button onClick={resetFilters} className="product-list-reset-filters">
             Filtreleri Sıfırla
           </button>
         </div>
@@ -336,22 +333,22 @@ function ProductList() {
       </h2>
 
       {filteredProducts.length === 0 ? (
-        <div className="no-results">
+        <div className="product-list-no-results">
           Arama kriterlerinize uygun ürün bulunamadı.
         </div>
       ) : (
-        <div className="products-grid">
+        <div className="product-list-grid">
           {filteredProducts.map((product) => (
-            <div key={product.id} className="product-card">
-              <div className="product-image">
+            <div key={product.id} className="product-list-card">
+              <div className="product-list-image">
                 <img
-                  src={`http://localhost:8080/images/${product.images[0]}`}
+                  src={`http://localhost:8080/${product.images[0]}`}
                   alt={product.title}
                   onClick={() => navigate(`/products/${product.id}`)}
                 />
                 {isLoggedIn && userRole === "BUYER" && (
                   <button
-                    className={`favorite-button ${
+                    className={`product-list-favorite-button ${
                       favorites.includes(product.id) ? "favorited" : ""
                     }`}
                     onClick={(e) => handleToggleFavorite(product.id, e)}
@@ -369,34 +366,36 @@ function ProductList() {
                   </button>
                 )}
               </div>
-              <div className="product-details">
+              <div className="product-list-details">
                 <h4 onClick={() => navigate(`/products/${product.id}`)}>
                   {product.title}
                 </h4>
-                <p className="product-description">
+                <p className="product-list-description">
                   {product.description?.substring(0, 100)}
                   {product.description?.length > 100 ? "..." : ""}
                 </p>
-                <p className="product-category">{product.category?.name}</p>
-                <p className="product-price">{product.price} TL</p>
+                <p className="product-list-category">
+                  {product.category?.name}
+                </p>
+                <p className="product-list-price">{product.price} TL</p>
 
-                <div className="seller-info">
+                <div className="product-list-seller-info">
                   <img
                     src={product.seller.profilePicture || "/default-avatar.png"}
                     alt={product.seller.firstName}
-                    className="seller-avatar"
+                    className="product-list-seller-avatar"
                     onClick={() => navigate(`/seller/${product.seller.id}`)}
                   />
-                  <div className="seller-details">
+                  <div className="product-list-seller-details">
                     <span
-                      className="seller-name"
+                      className="product-list-seller-name"
                       onClick={() => navigate(`/seller/${product.seller.id}`)}
                     >
                       {product.seller.firstName} {product.seller.lastName}
                     </span>
                     {isLoggedIn && userRole === "BUYER" && (
                       <button
-                        className={`follow-button ${
+                        className={`product-list-follow-button ${
                           followedSellers.includes(product.seller.id)
                             ? "following"
                             : ""
@@ -420,7 +419,7 @@ function ProductList() {
                 </div>
 
                 <button
-                  className="add-to-cart"
+                  className="product-list-add-to-cart"
                   onClick={(e) => handleAddToCart(product.id, e)}
                 >
                   <FaShoppingCart /> Sepete Ekle
