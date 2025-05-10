@@ -55,7 +55,13 @@ const ProductDetail = () => {
       <div className="product-detail-main">
         <div className="product-images">
           <img
-            src={product.imageUrl || "/default-product.jpg"}
+            src={
+              product.images && product.images.length > 0
+                ? `http://localhost:8080/uploads/products/${
+                    product.id
+                  }/${product.images[0].split("/").pop()}`
+                : "/default-product.png"
+            }
             alt={product.name}
             className="product-main-image"
           />
