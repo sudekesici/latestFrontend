@@ -44,44 +44,52 @@ function SellerProfile() {
   useEffect(() => {
     const fetchSellerData = async () => {
       try {
-        // API çağrılarını ayrı ayrı yapalım ve hata yönetimini geliştirelim
-        let sellerData, productsData;
+        setLoading(true);
+        setError(null);
 
-        try {
-          const sellerRes = await api.get(`/users/${id}`);
-          sellerData = sellerRes.data;
-        } catch (error) {
-          console.error("Satıcı bilgileri alınamadı:", error);
-          throw new Error("Satıcı bilgileri alınamadı");
+        // Satıcı bilgilerini al
+        const sellerRes = await api.get(`/users/${id}`);
+        if (!sellerRes.data) {
+          throw new Error("Satıcı bilgileri bulunamadı");
         }
+        const sellerData = sellerRes.data;
 
-        try {
-          const productsRes = await api.get(`/products/seller/${id}`);
-          productsData = productsRes.data;
-        } catch (error) {
-          console.error("Ürün bilgileri alınamadı:", error);
-          throw new Error("Ürün bilgileri alınamadı");
-        }
-
+        // Ürün bilgilerini al - endpoint'i değiştirdik
+        const productsRes = await api.get(`/products?sellerId=${id}`);
+        console.log(productsRes.data);
+        const productsData = productsRes.data.content || [];
+        console.log(productsData);
+        const filteredProducts = productsData.filter(
+          (product) => product.seller.id === parseInt(id)
+        );
+        console.log(filteredProducts);
         setSeller(sellerData);
-        setProducts(Array.isArray(productsData) ? productsData : []);
+        setProducts(filteredProducts);
 
-        // Eğer kullanıcı giriş yapmış ve alıcıysa, takip durumunu kontrol et
+        // Takip durumunu kontrol et
         if (isLoggedIn && userRole === "BUYER") {
           try {
             const followingRes = await api.get("/buyer/following");
-            setIsFollowing(
-              followingRes.data.some((f) => f.id === parseInt(id))
+            const isFollowing = followingRes.data.some(
+              (f) => f.id === parseInt(id)
             );
+            setIsFollowing(isFollowing);
           } catch (error) {
             console.error("Takip durumu kontrol edilemedi:", error);
-            // Takip durumu alınamazsa, varsayılan olarak false kabul edelim
             setIsFollowing(false);
           }
         }
       } catch (err) {
         console.error("Veri yükleme hatası:", err);
-        setError(err.message || "Veriler yüklenirken bir hata oluştu");
+        if (err.response?.status === 404) {
+          setError("Satıcı bulunamadı.");
+        } else if (err.response?.status === 403) {
+          setError("Bu sayfaya erişim izniniz yok.");
+        } else {
+          setError(
+            "Veriler yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
+          );
+        }
       } finally {
         setLoading(false);
       }
@@ -112,22 +120,46 @@ function SellerProfile() {
     }
   };
 
-  if (loading)
+  if (loading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
       </div>
     );
+  }
 
-  if (error) return <div className="error-message">{error}</div>;
-  if (!seller) return <div className="error-message">Satıcı bulunamadı.</div>;
+  if (error) {
+    return (
+      <div className="error-container">
+        <div className="error-message">{error}</div>
+        <button className="back-button" onClick={() => navigate(-1)}>
+          Geri Dön
+        </button>
+      </div>
+    );
+  }
+
+  if (!seller) {
+    return (
+      <div className="error-container">
+        <div className="error-message">Satıcı bulunamadı.</div>
+        <button className="back-button" onClick={() => navigate(-1)}>
+          Geri Dön
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="seller-profile-container">
       <div className="seller-header">
         <div className="seller-info">
           <img
-            src={seller.profilePicture || "/default-avatar.png"}
+            src={
+              seller.profilePicture
+                ? `http://localhost:8080/profiles/${seller.profilePicture}`
+                : "/default-avatar.png"
+            }
             alt={seller.firstName}
             className="seller-avatar"
           />
@@ -152,22 +184,24 @@ function SellerProfile() {
                 <span className="stat-label">Puan</span>
               </div>
             </div>
-            {isLoggedIn && userRole === "BUYER" && seller.role === "SELLER" && (
-              <button
-                className={`follow-button ${isFollowing ? "following" : ""}`}
-                onClick={handleToggleFollow}
-              >
-                {isFollowing ? (
-                  <>
-                    <FaUserCheck /> Takipte
-                  </>
-                ) : (
-                  <>
-                    <FaUserPlus /> Takip Et
-                  </>
-                )}
-              </button>
-            )}
+            {isLoggedIn &&
+              userRole === "BUYER" &&
+              seller.userType === "SELLER" && (
+                <button
+                  className={`follow-button ${isFollowing ? "following" : ""}`}
+                  onClick={handleToggleFollow}
+                >
+                  {isFollowing ? (
+                    <>
+                      <FaUserCheck /> Takipte
+                    </>
+                  ) : (
+                    <>
+                      <FaUserPlus /> Takip Et
+                    </>
+                  )}
+                </button>
+              )}
           </div>
         </div>
       </div>
@@ -181,10 +215,20 @@ function SellerProfile() {
         ) : (
           <div className="products-grid">
             {products.map((product) => (
-              <div key={product.id} className="product-card">
-                <div className="product-image">
+              <div
+                key={product.id}
+                className="product-card"
+                onClick={() => navigate(`/products/${product.id}`)}
+              >
+                <div className="seller-product-image">
                   <img
-                    src={`http://localhost:8080/images/${product.images[0]}`}
+                    src={
+                      product.images && product.images.length > 0
+                        ? `http://localhost:8080/uploads/products/${
+                            product.id
+                          }/${product.images[0].split("/").pop()}`
+                        : "/default-product.png"
+                    }
                     alt={product.title}
                   />
                 </div>

@@ -186,14 +186,6 @@ const Admin = () => {
   const handleProductUpdate = async () => {
     try {
       const token = localStorage.getItem("token");
-      const userType = localStorage.getItem("userType");
-
-      console.log("Update attempt with:", {
-        token: token ? "Bearer " + token.substring(0, 20) + "..." : null,
-        userType,
-        productId: selectedProduct.id,
-      });
-
       if (!token) {
         setError("Oturum süreniz dolmuş olabilir. Lütfen tekrar giriş yapın.");
         return;
@@ -207,8 +199,6 @@ const Admin = () => {
         categoryId: parseInt(editFormData.categoryId),
       };
 
-      console.log("Sending update data:", updateData);
-
       const response = await axios.put(
         `http://localhost:8080/api/v1/admin/products/${selectedProduct.id}`,
         updateData,
@@ -219,8 +209,6 @@ const Admin = () => {
           },
         }
       );
-
-      console.log("Update response:", response.data);
 
       setShowEditForm(false);
       await fetchProducts();
@@ -252,45 +240,33 @@ const Admin = () => {
     if (window.confirm("Bu ürünü silmek istediğinizden emin misiniz?")) {
       try {
         const token = localStorage.getItem("token");
-        if (!token) {
-          setError(
-            "Oturum süreniz dolmuş olabilir. Lütfen tekrar giriş yapın."
-          );
-          return;
-        }
+        console.log("Using token:", token); // Debug log
 
-        // Log the token and request details for debugging
-        console.log("Token:", token);
-        console.log(
-          "Request URL:",
-          `http://localhost:8080/api/v1/admin/products/${productId}?reason=Admin tarafından silindi`
-        );
+        const reason = "Admin tarafından silindi";
+        const url = `http://localhost:8080/api/v1/admin/products/${productId}?reason=${encodeURIComponent(
+          reason
+        )}`;
+        console.log("Request URL:", url); // Debug log
 
-        const response = await axios.delete(
-          `http://localhost:8080/api/v1/admin/products/${productId}?reason=Admin tarafından silindi`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const response = await axios.delete(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
-        if (response.status === 200) {
-          setSuccessMessage("Ürün başarıyla silindi");
-          fetchProducts();
-        }
-      } catch (err) {
-        console.error("Error deleting product:", err);
-        if (err.response?.status === 403) {
-          setError("Bu işlemi gerçekleştirmek için yetkiniz bulunmamaktadır.");
-        } else if (err.response?.status === 401) {
-          setError(
-            "Oturum süreniz dolmuş olabilir. Lütfen tekrar giriş yapın."
-          );
-        } else {
-          setError("Ürün silinirken bir hata oluştu.");
-        }
+        console.log("Response:", response); // Debug log
+        setProducts(products.filter((product) => product.id !== productId));
+        alert("Ürün başarıyla silindi");
+      } catch (error) {
+        console.error("Error deleting product:", error);
+        console.error("Error details:", {
+          status: error.response?.status,
+          data: error.response?.data,
+          headers: error.response?.headers,
+          message: error.response?.data || error.message,
+        });
+        alert(error.response?.data || "Ürün silinirken bir hata oluştu");
       }
     }
   };
