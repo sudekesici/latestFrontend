@@ -1,77 +1,168 @@
-// components/ProductDetail.jsx
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { FaTruck, FaComment } from "react-icons/fa";
+import { FaStar, FaTrash, FaUser, FaPhone, FaEnvelope } from "react-icons/fa";
+import { useParams, useNavigate } from "react-router-dom";
 import "./ProductDetail.css";
 
-const api = axios.create({
-  baseURL: "http://localhost:8080/api/v1",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+const API_URL = "http://localhost:8080";
 
 const ProductDetail = () => {
-  const navigate = useNavigate();
   const { id } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
+  const [rating, setRating] = useState(5);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [comments, setComments] = useState([]);
 
   useEffect(() => {
-    fetchProductDetails();
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("userRole");
+    setIsLoggedIn(!!token);
+    setUserRole(role || "");
+
+    const fetchProduct = async () => {
+      if (!id) {
+        setError("Ürün ID'si bulunamadı");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await axios.get(`${API_URL}/api/v1/products/${id}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        setProduct(response.data);
+      } catch (error) {
+        console.error("Ürün yüklenirken hata:", error);
+        setError("Ürün yüklenirken bir hata oluştu");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchComments = async () => {
+      if (!id) return;
+
+      try {
+        const response = await axios.get(
+          `${API_URL}/api/v1/buyer/comments/product/${id}`
+        );
+        setComments(response.data);
+      } catch (error) {
+        console.error("Yorumlar yüklenirken hata:", error);
+      }
+    };
+
+    fetchProduct();
     fetchComments();
   }, [id]);
 
-  const fetchProductDetails = async () => {
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+    if (!isLoggedIn) {
+      alert("Yorum yapabilmek için giriş yapmalısınız");
+      return;
+    }
+
+    if (!newComment.trim()) {
+      alert("Lütfen bir yorum yazın");
+      return;
+    }
+
     try {
-      const response = await api.get(`/products/${id}`);
-      setProduct(response.data);
-    } catch (err) {
-      setError("Ürün detayları yüklenirken bir hata oluştu.");
-      console.error(err);
-    } finally {
-      setLoading(false);
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_URL}/api/v1/buyer/comments`,
+        {
+          productId: id,
+          content: newComment,
+          rating: rating,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setComments([response.data, ...comments]);
+      setNewComment("");
+      setRating(5);
+    } catch (error) {
+      console.error("Yorum eklenirken hata:", error);
+      alert("Yorum eklenirken bir hata oluştu");
     }
   };
 
-  const fetchComments = async () => {
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm("Bu yorumu silmek istediğinizden emin misiniz?")) {
+      return;
+    }
+
     try {
-      const response = await api.get(`/products/${id}/comments`);
-      setComments(response.data || []); // Eğer data null ise boş array kullan
-    } catch (err) {
-      console.error("Yorumlar yüklenirken hata:", err);
-      setComments([]); // Hata durumunda boş array
+      const token = localStorage.getItem("token");
+      await axios.delete(`${API_URL}/api/v1/buyer/comments/${commentId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setComments(comments.filter((comment) => comment.id !== commentId));
+    } catch (error) {
+      console.error("Yorum silinirken hata:", error);
+      alert("Yorum silinirken bir hata oluştu");
     }
   };
 
-  if (loading) return <div className="loading">Yükleniyor...</div>;
-  if (error) return <div className="error">{error}</div>;
-  if (!product) return <div className="error">Ürün bulunamadı.</div>;
+  if (loading) {
+    return <div className="loading">Yükleniyor...</div>;
+  }
+
+  if (error) {
+    return <div className="error">{error}</div>;
+  }
+
+  if (!product) {
+    return <div className="error">Ürün bulunamadı</div>;
+  }
 
   return (
-    <div className="product-detail-container">
-      <div className="product-detail-main">
+    <div className="product-detail">
+      <div className="product-header">
+        <h1>{product.title}</h1>
+        <div className="product-meta">
+          <span className="price">{product.price} TL</span>
+          <span className="category">{product.category.name}</span>
+          <span className="stock">Stok: {product.stock}</span>
+        </div>
+      </div>
+
+      <div className="product-content">
         <div className="product-images">
-          <img
-            src={
-              product.images && product.images.length > 0
-                ? `http://localhost:8080/uploads/products/${
-                    product.id
-                  }/${product.images[0].split("/").pop()}`
-                : "/default-product.png"
-            }
-            alt={product.name}
-            className="product-main-image"
-          />
+          {product.images && product.images.length > 0 ? (
+            <img
+              src={`${API_URL}${product.images[0]}`}
+              alt={product.title}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "/placeholder-image.jpg";
+              }}
+            />
+          ) : (
+            <div className="no-image">Resim yok</div>
+          )}
         </div>
 
         <div className="product-info">
-          <h1>{product.title}</h1>
+          <div className="product-description">
+            <h2>Ürün Açıklaması</h2>
+            <p>{product.description}</p>
+          </div>
 
           <div className="seller-info">
+            <h2>Satıcı Bilgileri</h2>
             <div className="seller-profile">
               <img
                 src={
@@ -82,101 +173,115 @@ const ProductDetail = () => {
                 alt={`${product.seller?.firstName} ${product.seller?.lastName}`}
                 className="seller-avatar"
                 onClick={() => navigate(`/seller/${product.seller.id}`)}
+                style={{ cursor: "pointer" }}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "/default-avatar.png";
+                }}
               />
               <div className="seller-details">
                 <h3
                   className="seller-name"
                   onClick={() => navigate(`/seller/${product.seller.id}`)}
+                  style={{ cursor: "pointer" }}
                 >
                   {product.seller?.firstName} {product.seller?.lastName}
                 </h3>
-              </div>
-            </div>
-          </div>
-
-          <div className="product-price-section">
-            <h2 className="price">{product.price} TL</h2>
-          </div>
-
-          <div className="stock-info">
-            <h3>Stok Durumu</h3>
-            {product.stock > 0 ? (
-              <div className="in-stock">
-                <span className="stock-status">Stokta</span>
-                <span className="stock-quantity">
-                  {product.stock} adet mevcut
-                </span>
-              </div>
-            ) : (
-              <div className="out-of-stock">
-                <span className="stock-status">Stokta Yok</span>
-                {product.restockDate && (
-                  <span className="restock-info">
-                    Tahmini stok tarihi:{" "}
-                    {new Date(product.restockDate).toLocaleDateString()}
+                <p className="seller-bio">{product.seller?.bio}</p>
+                <div className="seller-contact">
+                  <span>
+                    <FaPhone /> {product.seller?.phoneNumber}
                   </span>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="product-details">
-            <h3>Ürün Detayları</h3>
-            <p>{product.description}</p>
-
-            <div className="product-specs">
-              <div className="spec-item">
-                <strong>Kategori:</strong> {product.category?.name}
-              </div>
-              {product.type && (
-                <div className="spec-item">
-                  <strong>Tür:</strong> {product.type}
+                  <span>
+                    <FaEnvelope /> {product.seller?.email}
+                  </span>
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
-          {product.shippingDetails && (
-            <div className="shipping-info">
-              <h3>
-                <FaTruck /> Kargo Bilgileri
-              </h3>
-              <p>{product.shippingDetails}</p>
+          {product.ingredients && (
+            <div className="product-ingredients">
+              <h2>İçindekiler</h2>
+              <p>{product.ingredients}</p>
+            </div>
+          )}
+
+          {product.preparationTime && (
+            <div className="product-preparation">
+              <h2>Hazırlama Süresi</h2>
+              <p>{product.preparationTime}</p>
             </div>
           )}
         </div>
       </div>
 
-      <div className="product-comments">
-        <h3>
-          <FaComment /> Ürün Yorumları ({comments.length})
-        </h3>
+      <div className="comments-section">
+        <h2>Yorumlar</h2>
+        {isLoggedIn && (
+          <form onSubmit={handleAddComment} className="comment-form">
+            <div className="rating-input">
+              <label>Puanınız:</label>
+              <div className="star-rating">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <FaStar
+                    key={star}
+                    className={`star-icon ${star <= rating ? "active" : ""}`}
+                    onClick={() => setRating(star)}
+                    style={{ cursor: "pointer" }}
+                  />
+                ))}
+              </div>
+            </div>
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Yorumunuzu yazın..."
+              required
+            />
+            <button type="submit">Yorum Yap</button>
+          </form>
+        )}
 
         <div className="comments-list">
-          {comments.length > 0 ? (
+          {comments.length === 0 ? (
+            <p className="no-comments">Henüz yorum yapılmamış</p>
+          ) : (
             comments.map((comment) => (
               <div key={comment.id} className="comment">
                 <div className="comment-header">
                   <span className="comment-author">
-                    {comment.user?.firstName} {comment.user?.lastName}
+                    {comment.user.firstName} {comment.user.lastName}
+                  </span>
+                  <span className="comment-date">
+                    {new Date(comment.createdAt).toLocaleDateString()}
                   </span>
                 </div>
-                <p className="comment-content">{comment.content}</p>
-                {comment.createdAt && (
-                  <span className="comment-date">
-                    {new Date(comment.createdAt).toLocaleDateString("tr-TR", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </span>
+                <div className="comment-content">
+                  <div className="comment-rating">
+                    {[...Array(comment.rating)].map((_, i) => (
+                      <FaStar key={i} className="star-icon" />
+                    ))}
+                  </div>
+                  <p>{comment.content}</p>
+                  {comment.sellerReply && (
+                    <div className="seller-reply">
+                      <strong>Satıcı Yanıtı:</strong>
+                      <p>{comment.sellerReply}</p>
+                    </div>
+                  )}
+                </div>
+                {(userRole === "SELLER" ||
+                  comment.user.id === localStorage.getItem("userId")) && (
+                  <button
+                    className="delete-comment"
+                    onClick={() => handleDeleteComment(comment.id)}
+                  >
+                    <FaTrash /> Sil
+                  </button>
                 )}
               </div>
             ))
-          ) : (
-            <div className="no-comments">
-              <p>Bu ürün için henüz yorum yapılmamış.</p>
-            </div>
           )}
         </div>
       </div>
