@@ -139,38 +139,43 @@ function SellerProfile() {
 
     try {
       const token = localStorage.getItem("token");
-      const user = JSON.parse(localStorage.getItem("user"));
-      console.log("Follow/Unfollow için Token:", token);
-      console.log("Follow/Unfollow için User:", user);
-
-      if (!token || !user) {
-        console.error("Token veya user bilgisi eksik");
-        navigate("/login");
-        return;
+      if (!token) {
+        throw new Error("Token bulunamadı");
       }
+
+      // Token'ı decode et ve kontrol et
+      const tokenPayload = JSON.parse(atob(token.split(".")[1]));
+      if (!tokenPayload.authorities?.includes("ROLE_BUYER")) {
+        throw new Error("Bu işlem için BUYER yetkisi gerekiyor");
+      }
+
       if (isFollowing) {
         console.log("Unfollow işlemi başlatılıyor...");
-
         await api.delete(`/buyer/unfollow/${id}`);
         setIsFollowing(false);
       } else {
         console.log("Follow işlemi başlatılıyor...");
-
         await api.post(`/buyer/follow/${id}`);
         setIsFollowing(true);
       }
+
+      // Satıcı bilgilerini güncelle
       const updatedSellerRes = await api.get(`/users/${id}`);
       setSeller(updatedSellerRes.data);
-      console.log(
-        "Güncellenmiş takipçi sayısı:",
-        updatedSellerRes.data.followerCount
-      );
     } catch (error) {
       console.error("Takip işlemi başarısız:", error);
       if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
         navigate("/login");
+      } else if (error.response?.status === 403) {
+        alert(
+          "Bu işlem için yetkiniz yok. Lütfen BUYER hesabıyla giriş yapın."
+        );
       } else {
-        alert("Takip işlemi gerçekleştirilemedi.");
+        alert(
+          "Takip işlemi gerçekleştirilemedi. Lütfen daha sonra tekrar deneyin."
+        );
       }
     }
   };
