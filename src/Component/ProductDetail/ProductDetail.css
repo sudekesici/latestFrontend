@@ -311,3 +311,86 @@
     min-width: auto;
   }
 }
+/* ProductDetail.css içine eklenecek yeni stiller */
+
+.seller-info {
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  margin: 15px 0;
+  transition: all 0.3s ease;
+}
+
+.seller-info:hover {
+  background: #e9ecef;
+  transform: translateY(-2px);
+}
+
+.seller-profile {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.seller-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #4a90e2;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.seller-avatar:hover {
+  transform: scale(1.05);
+}
+
+.seller-details {
+  flex: 1;
+}
+
+.seller-name {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.seller-name:hover {
+  color: #4a90e2;
+}
+
+/* Responsive tasarım için medya sorguları */
+@media (max-width: 768px) {
+  .seller-profile {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .seller-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .seller-name {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .seller-info {
+    padding: 10px;
+  }
+
+  .seller-avatar {
+    width: 35px;
+    height: 35px;
+  }
+
+  .seller-name {
+    font-size: 13px;
+  }
+}

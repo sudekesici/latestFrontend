@@ -1,6 +1,6 @@
 // components/ProductDetail.jsx
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaTruck, FaComment } from "react-icons/fa";
 import "./ProductDetail.css";
@@ -13,6 +13,7 @@ const api = axios.create({
 });
 
 const ProductDetail = () => {
+  const navigate = useNavigate();
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -71,9 +72,26 @@ const ProductDetail = () => {
           <h1>{product.title}</h1>
 
           <div className="seller-info">
-            <span>
-              Satıcı: {product.seller?.firstName} {product.seller?.lastName}
-            </span>
+            <div className="seller-profile">
+              <img
+                src={
+                  product.seller?.profilePicture
+                    ? `http://localhost:8080/profiles/${product.seller.profilePicture}`
+                    : "/default-avatar.png"
+                }
+                alt={`${product.seller?.firstName} ${product.seller?.lastName}`}
+                className="seller-avatar"
+                onClick={() => navigate(`/seller/${product.seller.id}`)}
+              />
+              <div className="seller-details">
+                <h3
+                  className="seller-name"
+                  onClick={() => navigate(`/seller/${product.seller.id}`)}
+                >
+                  {product.seller?.firstName} {product.seller?.lastName}
+                </h3>
+              </div>
+            </div>
           </div>
 
           <div className="product-price-section">

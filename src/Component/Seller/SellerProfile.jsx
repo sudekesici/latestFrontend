@@ -1,4 +1,3 @@
-// SellerProfile.jsx
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -35,11 +34,40 @@ function SellerProfile() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
+    const user = JSON.parse(localStorage.getItem("user"));
+    console.log("Token:", token); // Debug için
+    console.log("User:", user); // Debug için
+
+    if (token && user) {
       setIsLoggedIn(true);
-      setUserRole(localStorage.getItem("userRole"));
+      setUserRole(user.userType);
+
+      // Token'ı decode et ve kontrol et
+      try {
+        const tokenPayload = JSON.parse(atob(token.split(".")[1]));
+        console.log("Token Payload:", tokenPayload); // Debug için
+        console.log("Token Role:", tokenPayload.role); // Token'daki rol
+        console.log("User Role:", user.userType); //
+
+        // Token'daki rol ile user objesindeki rolü karşılaştır
+        if (tokenPayload.role !== `ROLE_${user.userType}`) {
+          console.log("Token rolü ile kullanıcı rolü uyuşmuyor");
+          setIsLoggedIn(false);
+          setUserRole(null);
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/login");
+        }
+      } catch (error) {
+        console.error("Token decode hatası:", error);
+        setIsLoggedIn(false);
+        setUserRole(null);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login");
+      }
     }
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     const fetchSellerData = async () => {
@@ -64,6 +92,8 @@ function SellerProfile() {
         );
         console.log(filteredProducts);
         setSeller(sellerData);
+        console.log("Seller followerCount:", sellerData.followerCount);
+
         setProducts(filteredProducts);
 
         // Takip durumunu kontrol et
@@ -73,6 +103,7 @@ function SellerProfile() {
             const isFollowing = followingRes.data.some(
               (f) => f.id === parseInt(id)
             );
+
             setIsFollowing(isFollowing);
           } catch (error) {
             console.error("Takip durumu kontrol edilemedi:", error);
@@ -107,16 +138,40 @@ function SellerProfile() {
     }
 
     try {
+      const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("user"));
+      console.log("Follow/Unfollow için Token:", token);
+      console.log("Follow/Unfollow için User:", user);
+
+      if (!token || !user) {
+        console.error("Token veya user bilgisi eksik");
+        navigate("/login");
+        return;
+      }
       if (isFollowing) {
+        console.log("Unfollow işlemi başlatılıyor...");
+
         await api.delete(`/buyer/unfollow/${id}`);
         setIsFollowing(false);
       } else {
+        console.log("Follow işlemi başlatılıyor...");
+
         await api.post(`/buyer/follow/${id}`);
         setIsFollowing(true);
       }
+      const updatedSellerRes = await api.get(`/users/${id}`);
+      setSeller(updatedSellerRes.data);
+      console.log(
+        "Güncellenmiş takipçi sayısı:",
+        updatedSellerRes.data.followerCount
+      );
     } catch (error) {
       console.error("Takip işlemi başarısız:", error);
-      alert("Takip işlemi gerçekleştirilemedi.");
+      if (error.response?.status === 401) {
+        navigate("/login");
+      } else {
+        alert("Takip işlemi gerçekleştirilemedi.");
+      }
     }
   };
 
