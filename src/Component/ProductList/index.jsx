@@ -42,12 +42,32 @@ function ProductList() {
   const [userRole, setUserRole] = useState(null);
   const navigate = useNavigate();
 
+  // Favorileri API'den çek
+  const fetchFavorites = async () => {
+    try {
+      const favoritesRes = await api.get("/buyer/favorites");
+      setFavorites(favoritesRes.data.map((f) => String(f.product.id)));
+    } catch (error) {
+      console.error("Favoriler alınamadı:", error);
+    }
+  };
+
+  // Takip edilen satıcıları API'den çek
+  const fetchFollowing = async () => {
+    try {
+      const followingRes = await api.get("/buyer/following");
+      setFollowedSellers(followingRes.data.map((s) => s.id));
+    } catch (error) {
+      console.error("Takip edilenler alınamadı:", error);
+    }
+  };
+
   // Kullanıcı durumunu kontrol et
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       setIsLoggedIn(true);
-      const role = localStorage.getItem("userRole");
+      const role = localStorage.getItem("userType");
       setUserRole(role);
     }
   }, []);
@@ -65,16 +85,8 @@ function ProductList() {
         setCategories(categoriesRes.data);
 
         if (isLoggedIn && userRole === "BUYER") {
-          try {
-            const [favoritesRes, followingRes] = await Promise.all([
-              api.get("/buyer/favorites"),
-              api.get("/buyer/following"),
-            ]);
-            setFavorites(favoritesRes.data.map((f) => f.id));
-            setFollowedSellers(followingRes.data.map((s) => s.id));
-          } catch (error) {
-            console.error("Favori ve takip bilgileri alınamadı:", error);
-          }
+          await fetchFavorites();
+          await fetchFollowing();
         }
       } catch (err) {
         console.error("Veri yükleme hatası:", err);
@@ -85,6 +97,7 @@ function ProductList() {
     };
 
     fetchData();
+    // eslint-disable-next-line
   }, [isLoggedIn, userRole]);
 
   // Favori işlemleri
@@ -109,11 +122,8 @@ function ProductList() {
       );
 
       if (response.status === 200) {
-        setFavorites((prev) =>
-          prev.includes(productId)
-            ? prev.filter((id) => id !== productId)
-            : [...prev, productId]
-        );
+        // Favori işlemi sonrası API'den tekrar çek
+        await fetchFavorites();
       }
     } catch (error) {
       console.error("Favori işlemi başarısız:", error);
@@ -137,10 +147,10 @@ function ProductList() {
     try {
       if (followedSellers.includes(sellerId)) {
         await api.delete(`/buyer/unfollow/${sellerId}`);
-        setFollowedSellers((prev) => prev.filter((id) => id !== sellerId));
+        await fetchFollowing();
       } else {
         await api.post(`/buyer/follow/${sellerId}`);
-        setFollowedSellers((prev) => [...prev, sellerId]);
+        await fetchFollowing();
       }
     } catch (error) {
       console.error("Takip işlemi başarısız:", error);
@@ -355,16 +365,16 @@ function ProductList() {
                 {isLoggedIn && userRole === "BUYER" && (
                   <button
                     className={`product-list-favorite-button ${
-                      favorites.includes(product.id) ? "favorited" : ""
+                      favorites.includes(String(product.id)) ? "favorited" : ""
                     }`}
                     onClick={(e) => handleToggleFavorite(product.id, e)}
                     aria-label={
-                      favorites.includes(product.id)
+                      favorites.includes(String(product.id))
                         ? "Favorilerden çıkar"
                         : "Favorilere ekle"
                     }
                   >
-                    {favorites.includes(product.id) ? (
+                    {favorites.includes(String(product.id)) ? (
                       <FaHeart />
                     ) : (
                       <FaRegHeart />

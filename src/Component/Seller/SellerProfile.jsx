@@ -93,6 +93,7 @@ function SellerProfile() {
         console.log(filteredProducts);
         setSeller(sellerData);
         console.log("Seller followerCount:", sellerData.followerCount);
+        console.log("Seller rating:", sellerData.sellerRating);
 
         setProducts(filteredProducts);
 
@@ -240,7 +241,9 @@ function SellerProfile() {
                 <span className="stat-label">Takipçi</span>
               </div>
               <div className="stat">
-                <span className="stat-value">{seller.rating || "0.0"}</span>
+                <span className="stat-value">
+                  {seller.sellerRating || "0.0"}
+                </span>
                 <span className="stat-label">Puan</span>
               </div>
             </div>

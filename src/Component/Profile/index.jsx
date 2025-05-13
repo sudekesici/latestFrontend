@@ -67,13 +67,18 @@ const Profile = () => {
   const fetchFavorites = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `http://localhost:8080/api/v1/buyer/favorites`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setFavorites(response.data);
+      const userType = localStorage.getItem("userType");
+
+      // Sadece BUYER rolündeki kullanıcılar için favorileri getir
+      if (userType === "BUYER") {
+        const response = await axios.get(
+          `http://localhost:8080/api/v1/buyer/favorites`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setFavorites(response.data);
+      }
     } catch (error) {
       console.error("Favoriler yüklenirken hata:", error);
     }
@@ -82,13 +87,18 @@ const Profile = () => {
   const fetchFollowing = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `http://localhost:8080/api/v1/buyer/following`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setFollowing(response.data);
+      const userType = localStorage.getItem("userType");
+
+      // Sadece BUYER rolündeki kullanıcılar için takip edilenleri getir
+      if (userType === "BUYER") {
+        const response = await axios.get(
+          `http://localhost:8080/api/v1/buyer/following`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setFollowing(response.data);
+      }
     } catch (error) {
       console.error("Takip edilenler yüklenirken hata:", error);
     }
@@ -308,18 +318,27 @@ const Profile = () => {
         >
           <i className="fas fa-user"></i> Profil
         </button>
-        <button
-          className={`tab-button ${activeTab === "favorites" ? "active" : ""}`}
-          onClick={() => setActiveTab("favorites")}
-        >
-          <i className="fas fa-heart"></i> Favoriler ({favorites.length})
-        </button>
-        <button
-          className={`tab-button ${activeTab === "following" ? "active" : ""}`}
-          onClick={() => setActiveTab("following")}
-        >
-          <i className="fas fa-users"></i> Takip Edilenler ({following.length})
-        </button>
+        {user.userType === "BUYER" && (
+          <>
+            <button
+              className={`tab-button ${
+                activeTab === "favorites" ? "active" : ""
+              }`}
+              onClick={() => setActiveTab("favorites")}
+            >
+              <i className="fas fa-heart"></i> Favoriler ({favorites.length})
+            </button>
+            <button
+              className={`tab-button ${
+                activeTab === "following" ? "active" : ""
+              }`}
+              onClick={() => setActiveTab("following")}
+            >
+              <i className="fas fa-users"></i> Takip Edilenler (
+              {following.length})
+            </button>
+          </>
+        )}
       </div>
 
       {activeTab === "profile" &&
@@ -418,29 +437,47 @@ const Profile = () => {
               <p>Henüz favori ürününüz bulunmuyor.</p>
             </div>
           ) : (
-            favorites.map((product) => (
-              <div key={product.id} className="product-card">
-                <div className="product-image">
-                  <img
-                    src={product.images[0] || "/placeholder.png"}
-                    alt={product.title}
-                  />
-                  <div className="product-price-tag">{product.price} TL</div>
+            favorites.map((favorite) => {
+              const product = favorite.product; // Favorite objesinden product'ı al
+              return (
+                <div
+                  key={product.id}
+                  className="product-card"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => navigate(`/products/${product.id}`)}
+                >
+                  <div className="product-image">
+                    <img
+                      src={
+                        product.images && product.images.length > 0
+                          ? `http://localhost:8080/uploads/products/${
+                              product.id
+                            }/${product.images[0].split("/").pop()}`
+                          : "/placeholder.png"
+                      }
+                      alt={product.title}
+                    />
+                    <div className="product-price-tag">{product.price} TL</div>
+                  </div>
+                  <div className="product-info">
+                    <h3>{product.title}</h3>
+                    <p className="seller">
+                      <i className="fas fa-store"></i>{" "}
+                      {product.seller?.firstName || "Satıcı"}
+                    </p>
+                    <button
+                      className="favorite-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleFavorite(product.id);
+                      }}
+                    >
+                      <i className="fas fa-heart"></i> Favorilerden Çıkar
+                    </button>
+                  </div>
                 </div>
-                <div className="product-info">
-                  <h3>{product.title}</h3>
-                  <p className="seller">
-                    <i className="fas fa-store"></i> {product.seller.firstName}
-                  </p>
-                  <button
-                    className="favorite-button"
-                    onClick={() => handleToggleFavorite(product.id)}
-                  >
-                    <i className="fas fa-heart"></i> Favorilerden Çıkar
-                  </button>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       )}
@@ -474,7 +511,9 @@ const Profile = () => {
                       <span className="label">Takipçi</span>
                     </div>
                     <div className="stat">
-                      <span className="value">{seller.rating || "0.0"}</span>
+                      <span className="value">
+                        {seller.sellerRating || "0.0"}
+                      </span>
                       <span className="label">Puan</span>
                     </div>
                   </div>
