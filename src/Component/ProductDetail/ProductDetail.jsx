@@ -205,7 +205,7 @@ const ProductDetail = () => {
   }
 
   // Satıcı kendi ürününe mi bakıyor?
-  const isSellerOfProduct = true;
+  const isSellerOfProduct = userType === "SELLER";
   console.log("seller" + isSellerOfProduct);
 
   return (
