@@ -14,15 +14,24 @@ const ProductDetail = () => {
   const [newComment, setNewComment] = useState("");
   const [rating, setRating] = useState(5);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState("");
+  const [userType, setUserType] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [replyText, setReplyText] = useState({});
+  const [editingReply, setEditingReply] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const role = localStorage.getItem("userRole");
+    const type = localStorage.getItem("userType");
+    const payload = token ? JSON.parse(atob(token.split(".")[1])) : null;
+    console.log(payload.sub);
+    const email = payload.sub;
     setIsLoggedIn(!!token);
-    setUserRole(role || "");
+    setUserType(type || "");
+    setUserEmail(email || "");
+    console.log("userType:", type);
+    console.log(token);
 
     const fetchProduct = async () => {
       if (!id) {
@@ -93,7 +102,72 @@ const ProductDetail = () => {
       setRating(5);
     } catch (error) {
       console.error("Yorum eklenirken hata:", error);
-      alert("Yorum eklenirken bir hata oluştu");
+      alert(
+        error.response?.data?.message || "Yorum eklenirken bir hata oluştu"
+      );
+    }
+  };
+
+  const handleAddReply = async (commentId) => {
+    if (!replyText[commentId]?.trim()) {
+      alert("Lütfen bir yanıt yazın");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_URL}/api/v1/buyer/comments/${commentId}/reply`,
+        { reply: replyText[commentId] },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setComments(
+        comments.map((comment) =>
+          comment.id === commentId ? response.data : comment
+        )
+      );
+      setReplyText({ ...replyText, [commentId]: "" });
+      setEditingReply(null);
+    } catch (error) {
+      console.error("Yanıt eklenirken hata:", error);
+      alert(
+        error.response?.data?.message || "Yanıt eklenirken bir hata oluştu"
+      );
+    }
+  };
+
+  const handleEditReply = async (commentId) => {
+    if (!replyText[commentId]?.trim()) {
+      alert("Lütfen bir yanıt yazın");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_URL}/api/v1/buyer/comments/${commentId}/reply`,
+        {
+          reply: replyText[commentId],
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setComments(
+        comments.map((comment) =>
+          comment.id === commentId ? response.data : comment
+        )
+      );
+      setReplyText({ ...replyText, [commentId]: "" });
+      setEditingReply(null);
+    } catch (error) {
+      console.error("Yanıt güncellenirken hata:", error);
+      alert(
+        error.response?.data?.message || "Yanıt güncellenirken bir hata oluştu"
+      );
     }
   };
 
@@ -112,7 +186,9 @@ const ProductDetail = () => {
       setComments(comments.filter((comment) => comment.id !== commentId));
     } catch (error) {
       console.error("Yorum silinirken hata:", error);
-      alert("Yorum silinirken bir hata oluştu");
+      alert(
+        error.response?.data?.message || "Yorum silinirken bir hata oluştu"
+      );
     }
   };
 
@@ -127,6 +203,10 @@ const ProductDetail = () => {
   if (!product) {
     return <div className="error">Ürün bulunamadı</div>;
   }
+
+  // Satıcı kendi ürününe mi bakıyor?
+  const isSellerOfProduct = true;
+  console.log("seller" + isSellerOfProduct);
 
   return (
     <div className="product-detail">
@@ -218,7 +298,7 @@ const ProductDetail = () => {
 
       <div className="comments-section">
         <h2>Yorumlar</h2>
-        {isLoggedIn && (
+        {isLoggedIn && userType !== "SELLER" && (
           <form onSubmit={handleAddComment} className="comment-form">
             <div className="rating-input">
               <label>Puanınız:</label>
@@ -264,22 +344,86 @@ const ProductDetail = () => {
                     ))}
                   </div>
                   <p>{comment.content}</p>
-                  {comment.sellerReply && (
+                  {comment.sellerReply && !editingReply && (
                     <div className="seller-reply">
                       <strong>Satıcı Yanıtı:</strong>
                       <p>{comment.sellerReply}</p>
+                      {isSellerOfProduct && (
+                        <button
+                          className="edit-reply"
+                          onClick={() => {
+                            setEditingReply(comment.id);
+                            setReplyText({
+                              ...replyText,
+                              [comment.id]: comment.sellerReply,
+                            });
+                          }}
+                        >
+                          Düzenle
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {isSellerOfProduct && (
+                    <div className="reply-section">
+                      {editingReply === comment.id ? (
+                        <>
+                          <textarea
+                            value={replyText[comment.id] || ""}
+                            onChange={(e) =>
+                              setReplyText({
+                                ...replyText,
+                                [comment.id]: e.target.value,
+                              })
+                            }
+                            placeholder="Yanıtınızı yazın..."
+                          />
+                          <div className="reply-buttons">
+                            <button onClick={() => handleEditReply(comment.id)}>
+                              Güncelle
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditingReply(null);
+                                setReplyText({
+                                  ...replyText,
+                                  [comment.id]: "",
+                                });
+                              }}
+                            >
+                              İptal
+                            </button>
+                          </div>
+                        </>
+                      ) : !comment.sellerReply ? (
+                        <>
+                          <textarea
+                            value={replyText[comment.id] || ""}
+                            onChange={(e) =>
+                              setReplyText({
+                                ...replyText,
+                                [comment.id]: e.target.value,
+                              })
+                            }
+                            placeholder="Yanıtınızı yazın..."
+                          />
+                          <button onClick={() => handleAddReply(comment.id)}>
+                            Yanıtla
+                          </button>
+                        </>
+                      ) : null}
                     </div>
                   )}
                 </div>
-                {(userRole === "SELLER" ||
-                  comment.user.id === localStorage.getItem("userId")) && (
+                {isSellerOfProduct ||
+                (userEmail && comment.user.email === userEmail) ? (
                   <button
                     className="delete-comment"
                     onClick={() => handleDeleteComment(comment.id)}
                   >
                     <FaTrash /> Sil
                   </button>
-                )}
+                ) : null}
               </div>
             ))
           )}
