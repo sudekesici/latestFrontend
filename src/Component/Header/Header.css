@@ -13,7 +13,6 @@
   z-index: 1000;
 }
 
-/* Logo Styles */
 .logo {
   display: flex;
   align-items: center;
@@ -36,7 +35,6 @@
   transition: transform 0.3s ease;
 }
 
-/* Navigation Links */
 .nav-links {
   display: flex;
   gap: 2.5rem;
@@ -59,57 +57,65 @@
   transform: translateY(-1px);
 }
 
-/* Category Dropdown */
-.category-container {
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.notification-section {
   position: relative;
-  display: inline-block;
+  margin-right: 1rem;
 }
-
-.category-trigger {
-  color: #4a5568;
-  font-weight: 500;
+.notification-icon {
+  background: none;
+  border: none;
   cursor: pointer;
-  transition: all 0.3s ease;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
+  position: relative;
+  font-size: 1.5rem;
 }
-
-.category-container:hover .category-trigger {
-  color: #2c5282;
-  background-color: rgba(66, 153, 225, 0.08);
-}
-
-.category-dropdown {
-  display: none;
+.notification-badge {
   position: absolute;
-  top: calc(100% + 0.5rem);
-  left: 0;
-  background-color: white;
-  min-width: 220px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
-  padding: 0.5rem;
-  animation: fadeInDown 0.3s ease-out;
+  top: -5px;
+  right: -5px;
+  background: #ff4444;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 0.8rem;
 }
-
-.category-container:hover .category-dropdown {
-  display: block;
-}
-
-.category-item {
-  display: block;
-  padding: 0.75rem 1rem;
-  color: #4a5568;
-  text-decoration: none;
-  transition: all 0.2s ease;
+.notification-dropdown {
+  position: absolute;
+  right: 0;
+  top: 2.5rem;
+  background: white;
+  border: 1px solid #eee;
   border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  z-index: 100;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.notification-item {
+  padding: 10px;
+  border-bottom: 1px solid #f3f3f3;
   font-size: 0.95rem;
 }
-
-.category-item:hover {
-  background-color: rgba(66, 153, 225, 0.08);
-  color: #2c5282;
-  transform: translateX(4px);
+.notification-item.unread {
+  background: #f0f8ff;
+  font-weight: bold;
+}
+.notification-date {
+  display: block;
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 2px;
+}
+.notification-empty {
+  padding: 20px;
+  text-align: center;
+  color: #888;
 }
 
 /* Auth Section */

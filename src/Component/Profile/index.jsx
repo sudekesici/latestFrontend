@@ -446,7 +446,7 @@ const Profile = () => {
                   style={{ cursor: "pointer" }}
                   onClick={() => navigate(`/products/${product.id}`)}
                 >
-                  <div className="product-image">
+                  <div className="product-image-profile">
                     <img
                       src={
                         product.images && product.images.length > 0

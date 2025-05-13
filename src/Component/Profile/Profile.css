@@ -240,14 +240,14 @@
   transform: translateY(-5px);
 }
 
-.product-image {
+.product-image-profile {
   position: relative;
   width: 100%;
   padding-top: 75%; /* 4:3 aspect ratio */
   overflow: hidden;
 }
 
-.product-image img {
+.product-image-profile img {
   position: absolute;
   top: 0;
   left: 0;
