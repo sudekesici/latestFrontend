@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./SellerDashboard.css";
 import { head } from "framer-motion/client";
+import api from "./utils/axios"; // api.js'i import et
 
 const SellerDashboard = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const SellerDashboard = () => {
   const [productCategoryFilter, setProductCategoryFilter] = useState("ALL");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [editImages, setEditImages] = useState([]);
   const [editFormData, setEditFormData] = useState({
     title: "",
     description: "",
@@ -60,7 +62,6 @@ const SellerDashboard = () => {
 
     if (!token || userType !== "SELLER") {
       setError("Bu sayfaya erişim yetkiniz yok");
-      setTimeout(() => navigate("/login"), 2000);
       return;
     }
 
@@ -71,31 +72,14 @@ const SellerDashboard = () => {
       if (error.response?.status === 403) {
         localStorage.removeItem("token");
         setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
-        setTimeout(() => navigate("/login"), 2000);
       }
     }
   };
 
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const meResponse = await axios.get(
-        "http://localhost:8080/api/v1/auth/me",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const response = await axios.get(
-        `http://localhost:8080/api/v1/users/${meResponse.data.id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const meResponse = await api.get("/api/v1/auth/me");
+      const response = await api.get(`/api/v1/users/${meResponse.data.id}`);
 
       setUser(response.data);
       setFormData({
@@ -108,13 +92,7 @@ const SellerDashboard = () => {
       setLoading(false);
     } catch (error) {
       console.error("Profil bilgileri yüklenirken hata:", error);
-      if (error.response?.status === 403) {
-        localStorage.removeItem("token");
-        setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
-        setTimeout(() => navigate("/login"), 2000);
-      } else {
-        setError("Profil bilgileri yüklenirken bir hata oluştu.");
-      }
+      setError("Profil bilgileri yüklenirken bir hata oluştu.");
       setLoading(false);
     }
   };
@@ -129,18 +107,7 @@ const SellerDashboard = () => {
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.put(
-        `http://localhost:8080/api/v1/users/${user.id}`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
+      const response = await api.put(`/api/v1/users/${user.id}`, formData);
       setUser(response.data);
       setShowProfileEditModal(false);
     } catch (err) {
@@ -152,11 +119,9 @@ const SellerDashboard = () => {
   const [sortOrder, setSortOrder] = useState("newest");
 
   const fetchProducts = async () => {
-    const token = localStorage.getItem("token");
     try {
-      const response = await axios.get(
-        `http://localhost:8080/api/v1/seller/products?sortBy=${sortOrder}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+      const response = await api.get(
+        `/api/v1/seller/products?sortBy=${sortOrder}`
       );
       setProducts(response.data);
     } catch (err) {
@@ -170,9 +135,7 @@ const SellerDashboard = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:8080/api/v1/categories"
-      );
+      const response = await api.get("/api/v1/categories");
       setCategories(response.data);
     } catch (error) {
       console.error("Categories fetch error:", error);
@@ -182,15 +145,7 @@ const SellerDashboard = () => {
   const handleDelete = async (productId) => {
     if (window.confirm("Bu ürünü silmek istediğinizden emin misiniz?")) {
       try {
-        const token = localStorage.getItem("token");
-        await axios.delete(
-          `http://localhost:8080/api/v1/seller/products/${productId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        await api.delete(`/api/v1/seller/products/${productId}`);
         setProducts(products.filter((product) => product.id !== productId));
         alert("Ürün başarıyla silindi");
       } catch (error) {
@@ -207,9 +162,10 @@ const SellerDashboard = () => {
       price: product.price,
       stock: product.stock,
       status: product.status,
-      categoryId: product.category.id,
+      categoryId:
+        product.category && product.category.id ? product.category.id : "",
       type: product.type || "FOOD",
-      shippingDetails: product.shippingDetails,
+      shippingDetails: product.shippingDetails || "",
     });
     setShowEditModal(true);
   };
@@ -217,7 +173,6 @@ const SellerDashboard = () => {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("token");
       const updateData = {
         ...editFormData,
         price: parseFloat(editFormData.price),
@@ -225,21 +180,71 @@ const SellerDashboard = () => {
         categoryId: parseInt(editFormData.categoryId),
       };
 
-      await axios.put(
-        `http://localhost:8080/api/v1/seller/products/${selectedProduct.id}`,
-        updateData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      // İstek öncesi log
+      console.log("Güncelleme isteği gönderiliyor:", {
+        productId: selectedProduct.id,
+        data: updateData,
+      });
+
+      const response = await api.put(
+        `/api/v1/seller/products/${selectedProduct.id}`,
+        updateData
+      );
+      if (editImages.length > 0) {
+        try {
+          // 1. Eski fotoğrafları sil
+          await api.delete(
+            `/api/v1/seller/products/${selectedProduct.id}/images`
+          );
+          // 2. Yeni fotoğrafları yükle
+          const imageFormData = new FormData();
+          editImages.forEach((img) => imageFormData.append("images", img));
+          await api.post(
+            `/api/v1/seller/products/${selectedProduct.id}/images`,
+            imageFormData,
+            {
+              headers: { "Content-Type": "multipart/form-data" },
+            }
+          );
+        } catch (imageError) {
+          alert(
+            "Ürün güncellendi fakat görseller yüklenirken hata oluştu: " +
+              (imageError.response?.data || imageError.message)
+          );
         }
+      }
+
+      // Başarılı yanıt log
+      console.log("Güncelleme başarılı:", response.data);
+
+      // Ürün listesini güncelle
+      setProducts(
+        products.map((product) =>
+          product.id === selectedProduct.id ? response.data : product
+        )
       );
 
+      await fetchProducts();
       setShowEditModal(false);
       setSelectedProduct(null);
-      await fetchProducts();
+      setEditImages([]);
+      alert("Ürün başarıyla güncellendi");
     } catch (error) {
-      alert("Ürün güncellenirken bir hata oluştu");
+      console.error("Güncelleme hatası:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+
+      // Hata mesajını göster
+      if (error.response?.status === 403) {
+        alert("Bu ürünü güncelleme yetkiniz yok");
+      } else {
+        alert(
+          "Ürün güncellenirken bir hata oluştu: " +
+            (error.response?.data?.message || error.message)
+        );
+      }
     }
   };
 
@@ -247,22 +252,8 @@ const SellerDashboard = () => {
     e.preventDefault();
     setError(null);
 
-    // Açıklama kontrolü
     if (newProduct.description.length < 10) {
       setError("Ürün açıklaması en az 10 karakter olmalıdır!");
-      return;
-    }
-
-    // Token ve yetki kontrolü
-    const token = localStorage.getItem("token");
-    const userType = localStorage.getItem("userType");
-
-    if (!token || userType !== "SELLER") {
-      setError(
-        "Oturum süreniz dolmuş veya yetkiniz yok. Lütfen tekrar giriş yapın."
-      );
-      localStorage.clear();
-      navigate("/login");
       return;
     }
 
@@ -279,47 +270,32 @@ const SellerDashboard = () => {
         tags: [],
         ingredients: "",
         preparationTime: "",
+        shippingDetails: newProduct.shippingDetails,
       };
 
-      const response = await axios.post(
-        "http://localhost:8080/api/v1/seller/products",
-        productData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await api.post("/api/v1/seller/products", productData);
 
       // Eğer resimler varsa, ayrı bir istekle resimleri yükle
       if (response.data && newProduct.images.length > 0) {
         const productId = response.data.id;
         const imageFormData = new FormData();
 
-        // Her bir resmi FormData'ya ekle
         newProduct.images.forEach((image) => {
           imageFormData.append("images", image);
         });
 
         try {
-          const token = localStorage.getItem("token");
-          if (!token) {
-            throw new Error("Oturum bilgisi bulunamadı");
-          }
           console.log("Resim yükleme isteği gönderiliyor...");
           console.log("Ürün ID:", productId);
           console.log("Resim sayısı:", newProduct.images.length);
-          console.log("Token:", token.substring(0, 20) + "...");
-          console.log("FormData içeriği:", imageFormData);
-          const uploadResponse = await axios.post(
-            `http://localhost:8080/api/v1/seller/products/${productId}/images`,
+
+          const uploadResponse = await api.post(
+            `/api/v1/seller/products/${productId}/images`,
             imageFormData,
             {
               headers: {
-                Authorization: `Bearer ${token}`,
+                "Content-Type": "multipart/form-data",
               },
-              withCredentials: true,
             }
           );
 
@@ -329,7 +305,6 @@ const SellerDashboard = () => {
             message: imageError.message,
             response: imageError.response?.data,
             status: imageError.response?.status,
-            headers: imageError.response?.headers,
           });
           setError(
             "Ürün oluşturuldu fakat resimler yüklenirken bir hata oluştu: " +
@@ -338,16 +313,15 @@ const SellerDashboard = () => {
         }
       }
 
-      // Başarılı ekleme sonrası
-      await fetchProducts(); // Ürün listesini yenile
-      setShowAddProductModal(false); // Modalı kapat
+      await fetchProducts();
+      setShowAddProductModal(false);
       setNewProduct({
-        // Form verilerini sıfırla
         title: "",
         description: "",
         price: "",
         stock: "",
         categoryId: "",
+        shippingDetails: "",
         images: [],
       });
     } catch (error) {
@@ -357,20 +331,9 @@ const SellerDashboard = () => {
         status: error.response?.status,
       });
 
-      if (error.response?.status === 403) {
-        setError(
-          "Bu işlem için yetkiniz bulunmuyor. Lütfen tekrar giriş yapın."
-        );
-        localStorage.clear();
-        navigate("/login");
-      } else if (error.response?.status === 401) {
-        setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
-        navigate("/login");
-      } else {
-        setError(
-          error.response?.data?.message || "Ürün eklenirken bir hata oluştu."
-        );
-      }
+      setError(
+        error.response?.data?.message || "Ürün eklenirken bir hata oluştu."
+      );
     }
   };
 
@@ -379,12 +342,15 @@ const SellerDashboard = () => {
   if (!user) return <div className="error-message">Kullanıcı bulunamadı.</div>;
 
   const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.title
+    const productTitle = (product.title || product.name || "").toString();
+    const matchesSearch = productTitle
       .toLowerCase()
-      .includes(productSearchTerm.toLowerCase());
+      .includes((productSearchTerm || "").toLowerCase());
     const matchesCategory =
       productCategoryFilter === "ALL" ||
-      product.category.id.toString() === productCategoryFilter;
+      (product.category &&
+        product.category.id &&
+        product.category.id.toString() === productCategoryFilter);
     return matchesSearch && matchesCategory;
   });
 
@@ -488,11 +454,11 @@ const SellerDashboard = () => {
             <div className="product-image-container">
               <img
                 src={
-                  product.images[0]
+                  product.images && product.images[0]
                     ? `http://localhost:8080${product.images[0]}`
                     : "/placeholder.png"
                 }
-                alt={product.title}
+                alt={product.title || product.name || "Ürün"}
                 className="product-image"
               />
               <div className="product-status-badge">
@@ -502,8 +468,12 @@ const SellerDashboard = () => {
               </div>
             </div>
             <div className="product-info">
-              <h3 className="product-title">{product.title}</h3>
-              <div className="product-category">{product.category.name}</div>
+              <h3 className="product-title">{product.title || product.name}</h3>
+              <div className="product-category">
+                {product.category && product.category.name
+                  ? product.category.name
+                  : ""}
+              </div>
               <div className="product-price">{product.price} TL</div>
               <div className="product-stock">Stok: {product.stock}</div>
             </div>
@@ -719,46 +689,53 @@ const SellerDashboard = () => {
               </div>
 
               <div className="form-group">
+                <label>Kargo Detayları</label>
+                <textarea
+                  value={newProduct.shippingDetails}
+                  onChange={(e) =>
+                    setNewProduct({
+                      ...newProduct,
+                      shippingDetails: e.target.value,
+                    })
+                  }
+                  rows="2"
+                  placeholder="Kargo bilgilerini giriniz"
+                />
+              </div>
+
+              <div className="form-group">
                 <label>Ürün Görselleri</label>
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/gif"
                   multiple
-                  onChange={(e) => {
-                    const files = Array.from(e.target.files);
-                    // Dosya boyutu kontrolü (5MB)
-                    const validFiles = files.filter(
-                      (file) => file.size <= 5 * 1024 * 1024
-                    );
-                    if (validFiles.length !== files.length) {
-                      setError(
-                        "Bazı dosyalar 5MB boyut sınırını aşıyor ve yüklenmeyecek."
-                      );
-                    }
+                  onChange={(e) =>
                     setNewProduct({
                       ...newProduct,
-                      images: validFiles,
-                    });
-                  }}
+                      images: Array.from(e.target.files),
+                    })
+                  }
                 />
                 <small className="help-text">
                   Desteklenen formatlar: JPG, JPEG, PNG, GIF. Maksimum dosya
                   boyutu: 5MB
                 </small>
-                {newProduct.images.length > 0 && (
-                  <div className="image-preview">
-                    {newProduct.images.map((file, index) => (
-                      <div key={index} className="preview-item">
-                        <img
-                          src={URL.createObjectURL(file)}
-                          alt={`Preview ${index + 1}`}
-                          className="preview-image"
-                        />
-                        <span className="file-name">{file.name}</span>
-                      </div>
+                <div className="image-preview">
+                  {newProduct.images.length > 0 &&
+                    newProduct.images.map((file, idx) => (
+                      <img
+                        key={idx}
+                        src={URL.createObjectURL(file)}
+                        alt={`Yeni Görsel ${idx + 1}`}
+                        style={{
+                          maxWidth: 80,
+                          maxHeight: 80,
+                          objectFit: "cover",
+                          marginRight: 8,
+                        }}
+                      />
                     ))}
-                  </div>
-                )}
+                </div>
               </div>
 
               {error && <div className="error-message">{error}</div>}
@@ -779,6 +756,7 @@ const SellerDashboard = () => {
                       price: "",
                       stock: "",
                       categoryId: "",
+                      shippingDetails: "",
                       images: [],
                     });
                   }}
@@ -918,6 +896,49 @@ const SellerDashboard = () => {
                   }
                   rows="2"
                 />
+              </div>
+              <div className="form-group">
+                <label>Ürün Görselleri</label>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif"
+                  multiple
+                  onChange={(e) => setEditImages(Array.from(e.target.files))}
+                />
+                <small className="help-text">
+                  Desteklenen formatlar: JPG, JPEG, PNG, GIF. Maksimum dosya
+                  boyutu: 5MB
+                </small>
+                {/* Eski görsellerin önizlemesi */}
+                <div className="image-preview">
+                  {editImages.length > 0
+                    ? editImages.map((file, idx) => (
+                        <img
+                          key={idx}
+                          src={URL.createObjectURL(file)}
+                          alt={`Yeni Görsel ${idx + 1}`}
+                          style={{
+                            maxWidth: 80,
+                            maxHeight: 80,
+                            objectFit: "cover",
+                            marginRight: 8,
+                          }}
+                        />
+                      ))
+                    : selectedProduct?.images?.map((img, idx) => (
+                        <img
+                          key={idx}
+                          src={`http://localhost:8080${img}`}
+                          alt="Ürün"
+                          style={{
+                            maxWidth: 80,
+                            maxHeight: 80,
+                            objectFit: "cover",
+                            marginRight: 8,
+                          }}
+                        />
+                      ))}
+                </div>
               </div>
               <div className="form-actions">
                 <button type="submit" className="save-button">

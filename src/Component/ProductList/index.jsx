@@ -10,12 +10,10 @@ import {
 import axios from "axios";
 import "./ProductList.css";
 
-// API instance
 const api = axios.create({
   baseURL: "http://localhost:8080/api/v1",
 });
 
-// Request interceptor
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -42,7 +40,6 @@ function ProductList() {
   const [userRole, setUserRole] = useState(null);
   const navigate = useNavigate();
 
-  // Favorileri API'den çek
   const fetchFavorites = async () => {
     try {
       const favoritesRes = await api.get("/buyer/favorites");
@@ -52,7 +49,6 @@ function ProductList() {
     }
   };
 
-  // Takip edilen satıcıları API'den çek
   const fetchFollowing = async () => {
     try {
       const followingRes = await api.get("/buyer/following");
@@ -62,7 +58,6 @@ function ProductList() {
     }
   };
 
-  // Kullanıcı durumunu kontrol et
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -72,7 +67,6 @@ function ProductList() {
     }
   }, []);
 
-  // Verileri yükle
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -80,7 +74,6 @@ function ProductList() {
           api.get("/products"),
           api.get("/categories"),
         ]);
-
         setProducts(productsRes.data.content);
         setCategories(categoriesRes.data);
 
@@ -89,7 +82,6 @@ function ProductList() {
           await fetchFollowing();
         }
       } catch (err) {
-        console.error("Veri yükleme hatası:", err);
         setError("Veriler yüklenirken bir hata oluştu.");
       } finally {
         setLoading(false);
@@ -100,7 +92,6 @@ function ProductList() {
     // eslint-disable-next-line
   }, [isLoggedIn, userRole]);
 
-  // Favori işlemleri
   const handleToggleFavorite = async (productId, event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -120,13 +111,10 @@ function ProductList() {
           },
         }
       );
-
       if (response.status === 200) {
-        // Favori işlemi sonrası API'den tekrar çek
         await fetchFavorites();
       }
     } catch (error) {
-      console.error("Favori işlemi başarısız:", error);
       if (error.response?.status === 403) {
         alert(
           "Bu işlemi gerçekleştirmek için alıcı hesabına sahip olmanız gerekmektedir."
@@ -135,7 +123,6 @@ function ProductList() {
     }
   };
 
-  // Takip işlemleri
   const handleToggleFollow = async (sellerId, event) => {
     event.stopPropagation();
 
@@ -153,7 +140,6 @@ function ProductList() {
         await fetchFollowing();
       }
     } catch (error) {
-      console.error("Takip işlemi başarısız:", error);
       if (error.response?.status === 401) {
         navigate("/login");
       } else {
@@ -162,7 +148,6 @@ function ProductList() {
     }
   };
 
-  // Sepete ekleme işlemi
   const handleAddToCart = async (productId, event) => {
     event.stopPropagation();
 
@@ -175,7 +160,6 @@ function ProductList() {
       await api.post("/cart/add", { productId, quantity: 1 });
       alert("Ürün sepete eklendi!");
     } catch (error) {
-      console.error("Sepete ekleme hatası:", error);
       if (error.response?.status === 401) {
         navigate("/login");
       } else {
@@ -184,18 +168,15 @@ function ProductList() {
     }
   };
 
-  // Filtreleme ve sıralama
   const filteredAndSortedProducts = () => {
     let filtered = [...products];
 
-    // Kategori filtresi
     if (selectedCategory !== "all") {
       filtered = filtered.filter(
         (product) => product.category.id.toString() === selectedCategory
       );
     }
 
-    // Arama filtresi
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -206,7 +187,6 @@ function ProductList() {
       );
     }
 
-    // Fiyat filtresi
     if (priceRange.min !== "") {
       filtered = filtered.filter(
         (product) => product.price >= parseFloat(priceRange.min)
@@ -218,7 +198,6 @@ function ProductList() {
       );
     }
 
-    // Sıralama
     switch (sortBy) {
       case "price-asc":
         filtered.sort((a, b) => a.price - b.price);
@@ -256,37 +235,37 @@ function ProductList() {
 
   if (loading) {
     return (
-      <div className="product-list-loading">
-        <div className="product-list-spinner"></div>
+      <div className="main-product-list-loading">
+        <div className="main-product-list-spinner"></div>
       </div>
     );
   }
 
   if (error) {
-    return <div className="product-list-error">{error}</div>;
+    return <div className="main-product-list-error">{error}</div>;
   }
 
   const filteredProducts = filteredAndSortedProducts();
 
   return (
-    <div className="product-list-container">
+    <div className="main-product-list-container">
       {/* Filtreler */}
-      <div className="product-list-filters">
-        <div className="product-list-search">
+      <div className="main-product-list-filters">
+        <div className="main-product-list-search">
           <input
             type="text"
             placeholder="Ürün Ara..."
-            className="product-list-search-input"
+            className="main-product-list-search-input"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <div className="product-list-filter-options">
+        <div className="main-product-list-filter-options">
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="product-list-category-select"
+            className="main-product-list-category-select"
           >
             <option value="all">Tüm Kategoriler</option>
             {categories.map((category) => (
@@ -299,7 +278,7 @@ function ProductList() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="product-list-sort-select"
+            className="main-product-list-sort-select"
           >
             <option value="default">Varsayılan Sıralama</option>
             <option value="price-asc">Fiyat (Düşükten Yükseğe)</option>
@@ -308,14 +287,14 @@ function ProductList() {
             <option value="name-desc">İsim (Z-A)</option>
           </select>
 
-          <div className="product-list-price-range">
+          <div className="main-product-list-price-range">
             <input
               type="number"
               name="min"
               placeholder="Min Fiyat"
               value={priceRange.min}
               onChange={handlePriceRangeChange}
-              className="product-list-price-input"
+              className="main-product-list-price-input"
               min="0"
             />
             <input
@@ -324,33 +303,36 @@ function ProductList() {
               placeholder="Max Fiyat"
               value={priceRange.max}
               onChange={handlePriceRangeChange}
-              className="product-list-price-input"
+              className="main-product-list-price-input"
               min="0"
             />
           </div>
 
-          <button onClick={resetFilters} className="product-list-reset-filters">
+          <button
+            onClick={resetFilters}
+            className="main-product-list-reset-filters"
+          >
             Filtreleri Sıfırla
           </button>
         </div>
       </div>
 
       {/* Ürün Listesi */}
-      <h2 className="product-list-title">
+      <h2 className="main-product-list-title">
         {filteredProducts.length > 0
           ? `${filteredProducts.length} Ürün Bulundu`
           : "Ürün Bulunamadı"}
       </h2>
 
       {filteredProducts.length === 0 ? (
-        <div className="product-list-no-results">
+        <div className="main-product-list-no-results">
           Arama kriterlerinize uygun ürün bulunamadı.
         </div>
       ) : (
-        <div className="product-list-grid">
+        <div className="main-product-list-grid">
           {filteredProducts.map((product) => (
-            <div key={product.id} className="product-list-card">
-              <div className="product-list-image">
+            <div key={product.id} className="main-product-list-card">
+              <div className="main-product-list-image">
                 <img
                   src={
                     product.images && product.images.length > 0
@@ -364,7 +346,7 @@ function ProductList() {
                 />
                 {isLoggedIn && userRole === "BUYER" && (
                   <button
-                    className={`product-list-favorite-button ${
+                    className={`main-product-list-favorite-button ${
                       favorites.includes(String(product.id)) ? "favorited" : ""
                     }`}
                     onClick={(e) => handleToggleFavorite(product.id, e)}
@@ -382,20 +364,19 @@ function ProductList() {
                   </button>
                 )}
               </div>
-              <div className="product-list-details">
+              <div className="main-product-list-details">
                 <h4 onClick={() => navigate(`/products/${product.id}`)}>
                   {product.title}
                 </h4>
-                <p className="product-list-description">
+                <p className="main-product-list-description">
                   {product.description?.substring(0, 100)}
                   {product.description?.length > 100 ? "..." : ""}
                 </p>
-                <p className="product-list-category">
+                <p className="main-product-list-category">
                   {product.category?.name}
                 </p>
-                <p className="product-list-price">{product.price} TL</p>
-
-                <div className="product-list-seller-info">
+                <p className="main-product-list-price">{product.price} TL</p>
+                <div className="main-product-list-seller-info">
                   <img
                     src={
                       product.seller.profilePicture
@@ -403,19 +384,19 @@ function ProductList() {
                         : "/default-avatar.png"
                     }
                     alt={product.seller.firstName}
-                    className="product-list-seller-avatar"
+                    className="main-product-list-seller-avatar"
                     onClick={() => navigate(`/seller/${product.seller.id}`)}
                   />
-                  <div className="product-list-seller-details">
+                  <div className="main-product-list-seller-details">
                     <span
-                      className="product-list-seller-name"
+                      className="main-product-list-seller-name"
                       onClick={() => navigate(`/seller/${product.seller.id}`)}
                     >
                       {product.seller.firstName} {product.seller.lastName}
                     </span>
                     {isLoggedIn && userRole === "BUYER" && (
                       <button
-                        className={`product-list-follow-button ${
+                        className={`main-product-list-follow-button ${
                           followedSellers.includes(product.seller.id)
                             ? "following"
                             : ""
@@ -437,9 +418,8 @@ function ProductList() {
                     )}
                   </div>
                 </div>
-
                 <button
-                  className="product-list-add-to-cart"
+                  className="main-product-list-add-to-cart"
                   onClick={(e) => handleAddToCart(product.id, e)}
                 >
                   <FaShoppingCart /> Sepete Ekle

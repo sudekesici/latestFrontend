@@ -3,7 +3,7 @@ import Header from "./Component/Header";
 import Footer from "./Component/Footer";
 import Home from "./pages/Home";
 import Login from "./Component/Login";
-import Register from "./pages/Register";
+import Register from "./Component/Register/Register";
 import About from "./pages/About";
 import Challenge from "./pages/Challenge";
 import ProductList from "./Component/ProductList";

@@ -25,8 +25,17 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // 403 hatası için özel işlem
     if (error.response?.status === 403) {
-      // Token geçersiz veya süresi dolmuş
+      // Eğer ürün güncelleme isteği ise, sadece hata mesajını göster
+      if (
+        error.config.method === "put" &&
+        error.config.url.includes("/seller/products/")
+      ) {
+        return Promise.reject(error);
+      }
+
+      // Diğer 403 hataları için login sayfasına yönlendir
       localStorage.removeItem("token");
       window.location.href = "/login";
     }

@@ -15,8 +15,6 @@ const Header = ({
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
-
-  // Mesajlar için state
   const [messages, setMessages] = useState([]);
   const [showMessages, setShowMessages] = useState(false);
 
@@ -133,44 +131,6 @@ const Header = ({
     }
   };
 
-  // Tek mesajı okundu yap
-  const handleMarkMessageRead = async (messageId) => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-    try {
-      await axios.post(
-        `http://localhost:8080/api/v1/messages/${messageId}/mark-read`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      fetchMessages();
-      fetchUnreadMessages();
-    } catch (err) {
-      console.error("Mesaj okundu olarak işaretlenemedi:", err);
-    }
-  };
-
-  // Tek mesajı okunmadı yap
-  const handleUnmarkMessageRead = async (messageId) => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-    try {
-      await axios.post(
-        `http://localhost:8080/api/v1/messages/${messageId}/unmark-read`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      fetchMessages();
-      fetchUnreadMessages();
-    } catch (err) {
-      console.error("Mesaj okunmadı olarak işaretlenemedi:", err);
-    }
-  };
-
   const handleLogout = () => {
     localStorage.removeItem("token");
     setUser(null);
@@ -195,13 +155,13 @@ const Header = ({
   };
 
   return (
-    <header className="header">
-      <div className="logo">
+    <header className="main-header">
+      <div className="main-header-logo">
         <Link to="/">
           <img src="src/assets/img/senior_logo.jpg" alt="site_logo" />
         </Link>
       </div>
-      <nav className="nav-links">
+      <nav className="main-header-nav">
         <Link to="/">Ana Sayfa</Link>
         <Link
           to="/products"
@@ -214,37 +174,43 @@ const Header = ({
         </Link>
         <Link to="/about">Hakkımızda</Link>
       </nav>
-
-      <div className="header-right">
-        {/* Bildirimler */}
+      <div className="main-header-right">
         {user && (
-          <div className="notification-section">
+          <div className="main-header-notification-section">
             <button
-              className="notification-icon"
+              className="main-header-notification-icon"
               onClick={() => {
                 setShowNotifications(!showNotifications);
                 if (unreadCount > 0) handleMarkAllRead();
               }}
             >
-              <span className="bell-icon" role="img" aria-label="Bildirim">
+              <span
+                className="main-header-bell-icon"
+                role="img"
+                aria-label="Bildirim"
+              >
                 🔔
               </span>
               {unreadCount > 0 && (
-                <span className="notification-badge">{unreadCount}</span>
+                <span className="main-header-notification-badge">
+                  {unreadCount}
+                </span>
               )}
             </button>
             {showNotifications && (
-              <div className="notification-dropdown">
+              <div className="main-header-notification-dropdown">
                 <h4>Bildirimler</h4>
                 {notifications.length === 0 ? (
-                  <div className="notification-empty">
+                  <div className="main-header-notification-empty">
                     Hiç bildiriminiz yok.
                   </div>
                 ) : (
                   notifications.map((n) => (
                     <div
                       key={n.id}
-                      className={`notification-item${n.read ? "" : " unread"}`}
+                      className={`main-header-notification-item${
+                        n.read ? "" : " unread"
+                      }`}
                       style={{ cursor: n.link ? "pointer" : "default" }}
                       onClick={() => {
                         if (n.link) {
@@ -254,7 +220,7 @@ const Header = ({
                       }}
                     >
                       {n.message}
-                      <span className="notification-date">
+                      <span className="main-header-notification-date">
                         {new Date(n.createdAt).toLocaleString()}
                       </span>
                     </div>
@@ -265,11 +231,10 @@ const Header = ({
           </div>
         )}
 
-        {/* Mesajlar */}
         {user && (
-          <div className="message-section">
+          <div className="main-header-message-section">
             <button
-              className="message-icon"
+              className="main-header-message-icon"
               onClick={() => {
                 setShowMessages(!showMessages);
                 if (unreadMessages > 0) handleMarkAllMessagesRead();
@@ -277,31 +242,31 @@ const Header = ({
             >
               <FaEnvelope />
               {unreadMessages > 0 && (
-                <span className="message-badge">{unreadMessages}</span>
+                <span className="main-header-message-badge">
+                  {unreadMessages}
+                </span>
               )}
             </button>
             {showMessages && (
-              <div className="message-dropdown">
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
+              <div className="main-header-message-dropdown">
+                <div className="main-header-message-dropdown-header">
                   <h4>Mesajlar</h4>
                 </div>
                 {messages.length === 0 ? (
-                  <div className="message-empty">Hiç mesajınız yok.</div>
+                  <div className="main-header-message-empty">
+                    Hiç mesajınız yok.
+                  </div>
                 ) : (
                   messages.slice(0, 5).map((m) => (
                     <div
                       key={m.id}
-                      className={`message-item${m.isRead ? "" : " unread"}`}
+                      className={`main-header-message-item${
+                        m.isRead ? "" : " unread"
+                      }`}
                       style={{ cursor: "pointer" }}
                     >
                       <div
-                        className="message-sender"
+                        className="main-header-message-sender"
                         onClick={() =>
                           navigate(
                             `/profile/${
@@ -311,35 +276,32 @@ const Header = ({
                             }`
                           )
                         }
-                        style={{ cursor: "pointer" }}
                         title="Profili Görüntüle"
                       >
                         <b>{m.sender.firstName || "Kullanıcı"}</b>
                       </div>
                       <div
-                        className="message-preview"
+                        className="main-header-message-preview"
                         onClick={() => {
                           setShowMessages(false);
-                          // Karşı tarafın id'sini bul
                           const otherUserId =
                             m.sender.id === user.id
                               ? m.receiver.id
                               : m.sender.id;
                           navigate(`/messages/${otherUserId}`);
                         }}
-                        style={{ cursor: "pointer" }}
                         title="Mesajlaşmaya Git"
                       >
                         {m.content.substring(0, 30)}...
                       </div>
-                      <div className="message-date">
+                      <div className="main-header-message-date">
                         {new Date(m.createdAt).toLocaleString()}
                       </div>
                     </div>
                   ))
                 )}
                 <div
-                  className="message-all-link"
+                  className="main-header-message-all-link"
                   onClick={() => {
                     setShowMessages(false);
                     navigate("/messages");
@@ -351,12 +313,12 @@ const Header = ({
             )}
           </div>
         )}
-        {/* Kullanıcı menüsü */}
-        <div className="auth-section">
+
+        <div className="main-header-auth-section">
           {user ? (
-            <div className="user-menu">
+            <div className="main-header-user-menu">
               <button
-                className="user-menu-button"
+                className="main-header-user-menu-button"
                 onClick={() => setShowUserMenu(!showUserMenu)}
               >
                 <img
@@ -366,12 +328,12 @@ const Header = ({
                       : "/default-avatar.png"
                   }
                   alt="Profil"
-                  className="user-avatar"
+                  className="main-header-user-avatar"
                 />
                 <span>{user.firstName}</span>
               </button>
               {showUserMenu && (
-                <div className="user-dropdown">
+                <div className="main-header-user-dropdown">
                   <Link
                     to={`/profile/${user.id}`}
                     onClick={(e) => {
@@ -408,11 +370,11 @@ const Header = ({
               )}
             </div>
           ) : (
-            <div className="auth-buttons">
-              <Link to="/login" className="login-button">
+            <div className="main-header-auth-buttons">
+              <Link to="/login" className="main-header-login-button">
                 Giriş Yap
               </Link>
-              <Link to="/register" className="register-button">
+              <Link to="/register" className="main-header-register-button">
                 Kayıt Ol
               </Link>
             </div>

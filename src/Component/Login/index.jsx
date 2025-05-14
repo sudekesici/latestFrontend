@@ -1,7 +1,7 @@
-// Login.jsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { FaGoogle, FaFacebookF } from "react-icons/fa";
 import "./Login.css";
 
 const Login = ({ updateUser }) => {
@@ -15,7 +15,6 @@ const Login = ({ updateUser }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Giriş yapılıyor:", formData);
     setErrorMessage("");
 
     try {
@@ -23,8 +22,6 @@ const Login = ({ updateUser }) => {
         "http://localhost:8080/api/v1/auth/login",
         formData
       );
-
-      console.log("Login response:", response.data);
 
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
@@ -39,14 +36,8 @@ const Login = ({ updateUser }) => {
           })
         );
 
-        console.log("Stored auth info:", {
-          token: response.data.token,
-          userType: response.data.userType,
-        });
-
         updateUser();
 
-        // Eğer kullanıcı SELLER ise my-products sayfasına yönlendir
         if (response.data.userType === "SELLER") {
           navigate("/seller-dashboard");
         } else {
@@ -56,7 +47,6 @@ const Login = ({ updateUser }) => {
         setErrorMessage("Giriş yaparken bir sorun oluştu.");
       }
     } catch (error) {
-      console.error("Login error:", error);
       setErrorMessage(
         error.response?.data?.message ||
           "Giriş başarısız. Lütfen e-posta ve şifrenizi kontrol edin."
@@ -72,12 +62,14 @@ const Login = ({ updateUser }) => {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-box">
+    <div className="main-login-container">
+      <div className="main-login-box">
         <h2>Giriş Yap</h2>
-        {errorMessage && <div className="error-message">{errorMessage}</div>}
+        {errorMessage && (
+          <div className="main-login-error-message">{errorMessage}</div>
+        )}
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
+          <div className="main-login-form-group">
             <input
               type="email"
               id="email"
@@ -87,7 +79,7 @@ const Login = ({ updateUser }) => {
               required
             />
           </div>
-          <div className="form-group">
+          <div className="main-login-form-group">
             <input
               type="password"
               id="password"
@@ -97,35 +89,30 @@ const Login = ({ updateUser }) => {
               required
             />
           </div>
-          <div className="form-group remember-forgot">
+          <div className="main-login-form-group main-login-remember-forgot">
             <label>
               <input type="checkbox" /> Beni hatırla
             </label>
             <Link to="/forgot-password">Şifremi Unuttum</Link>
           </div>
-          <button type="submit" className="login-button">
+          <button type="submit" className="main-login-button">
             Giriş Yap
           </button>
         </form>
-        <div className="social-login">
-          <p>veya şununla giriş yap:</p>
-          <div className="social-buttons">
-            <button className="google-btn">
-              <img src="/google-icon.png" alt="Google" width="20" height="20" />
+        <div className="main-login-social-login">
+          <div className="main-login-divider">veya şununla giriş yap:</div>
+          <div className="main-login-social-buttons">
+            <button className="main-login-google-btn" type="button">
+              <FaGoogle className="main-login-social-icon" />
               Google ile Giriş Yap
             </button>
-            <button className="facebook-btn">
-              <img
-                src="/facebook-icon.png"
-                alt="Facebook"
-                width="20"
-                height="20"
-              />
+            <button className="main-login-facebook-btn" type="button">
+              <FaFacebookF className="main-login-social-icon" />
               Facebook ile Giriş Yap
             </button>
           </div>
         </div>
-        <div className="register-link">
+        <div className="main-login-register-link">
           Henüz üye değil misin? <Link to="/register">Kayıt Ol</Link>
         </div>
       </div>
