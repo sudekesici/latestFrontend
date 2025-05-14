@@ -1,15 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FaUserCheck, FaUserPlus } from "react-icons/fa";
+import { FaUserCheck, FaUserPlus, FaEnvelope } from "react-icons/fa";
 import "./SellerProfile.css";
 
-// API instance oluştur
 const api = axios.create({
   baseURL: "http://localhost:8080/api/v1",
 });
 
-// Request interceptor ekle
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -31,27 +29,20 @@ function SellerProfile() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user"));
-    console.log("Token:", token); // Debug için
-    console.log("User:", user); // Debug için
+    setCurrentUser(user);
 
     if (token && user) {
       setIsLoggedIn(true);
       setUserRole(user.userType);
 
-      // Token'ı decode et ve kontrol et
       try {
         const tokenPayload = JSON.parse(atob(token.split(".")[1]));
-        console.log("Token Payload:", tokenPayload); // Debug için
-        console.log("Token Role:", tokenPayload.role); // Token'daki rol
-        console.log("User Role:", user.userType); //
-
-        // Token'daki rol ile user objesindeki rolü karşılaştır
         if (tokenPayload.role !== `ROLE_${user.userType}`) {
-          console.log("Token rolü ile kullanıcı rolü uyuşmuyor");
           setIsLoggedIn(false);
           setUserRole(null);
           localStorage.removeItem("token");
@@ -59,7 +50,6 @@ function SellerProfile() {
           navigate("/login");
         }
       } catch (error) {
-        console.error("Token decode hatası:", error);
         setIsLoggedIn(false);
         setUserRole(null);
         localStorage.removeItem("token");
@@ -75,61 +65,43 @@ function SellerProfile() {
         setLoading(true);
         setError(null);
 
-        // Satıcı bilgilerini al
         const sellerRes = await api.get(`/users/${id}`);
-        if (!sellerRes.data) {
-          throw new Error("Satıcı bilgileri bulunamadı");
-        }
+        if (!sellerRes.data) throw new Error("Satıcı bilgileri bulunamadı");
         const sellerData = sellerRes.data;
 
-        // Ürün bilgilerini al - endpoint'i değiştirdik
         const productsRes = await api.get(`/products?sellerId=${id}`);
-        console.log(productsRes.data);
         const productsData = productsRes.data.content || [];
-        console.log(productsData);
         const filteredProducts = productsData.filter(
           (product) => product.seller.id === parseInt(id)
         );
-        console.log(filteredProducts);
         setSeller(sellerData);
-        console.log("Seller followerCount:", sellerData.followerCount);
-        console.log("Seller rating:", sellerData.sellerRating);
-
         setProducts(filteredProducts);
 
-        // Takip durumunu kontrol et
         if (isLoggedIn && userRole === "BUYER") {
           try {
             const followingRes = await api.get("/buyer/following");
             const isFollowing = followingRes.data.some(
               (f) => f.id === parseInt(id)
             );
-
             setIsFollowing(isFollowing);
-          } catch (error) {
-            console.error("Takip durumu kontrol edilemedi:", error);
+          } catch {
             setIsFollowing(false);
           }
         }
       } catch (err) {
-        console.error("Veri yükleme hatası:", err);
-        if (err.response?.status === 404) {
-          setError("Satıcı bulunamadı.");
-        } else if (err.response?.status === 403) {
+        if (err.response?.status === 404) setError("Satıcı bulunamadı.");
+        else if (err.response?.status === 403)
           setError("Bu sayfaya erişim izniniz yok.");
-        } else {
+        else
           setError(
             "Veriler yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
           );
-        }
       } finally {
         setLoading(false);
       }
     };
 
-    if (id) {
-      fetchSellerData();
-    }
+    if (id) fetchSellerData();
   }, [id, isLoggedIn, userRole]);
 
   const handleToggleFollow = async () => {
@@ -137,34 +109,23 @@ function SellerProfile() {
       navigate("/login");
       return;
     }
-
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Token bulunamadı");
-      }
-
-      // Token'ı decode et ve kontrol et
+      if (!token) throw new Error("Token bulunamadı");
       const tokenPayload = JSON.parse(atob(token.split(".")[1]));
       if (!tokenPayload.authorities?.includes("ROLE_BUYER")) {
         throw new Error("Bu işlem için BUYER yetkisi gerekiyor");
       }
-
       if (isFollowing) {
-        console.log("Unfollow işlemi başlatılıyor...");
         await api.delete(`/buyer/unfollow/${id}`);
         setIsFollowing(false);
       } else {
-        console.log("Follow işlemi başlatılıyor...");
         await api.post(`/buyer/follow/${id}`);
         setIsFollowing(true);
       }
-
-      // Satıcı bilgilerini güncelle
       const updatedSellerRes = await api.get(`/users/${id}`);
       setSeller(updatedSellerRes.data);
     } catch (error) {
-      console.error("Takip işlemi başarısız:", error);
       if (error.response?.status === 401) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -183,17 +144,20 @@ function SellerProfile() {
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
+      <div className="seller-profile-loading">
+        <div className="seller-profile-spinner"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="error-container">
-        <div className="error-message">{error}</div>
-        <button className="back-button" onClick={() => navigate(-1)}>
+      <div className="seller-profile-error">
+        <div className="seller-profile-error-message">{error}</div>
+        <button
+          className="seller-profile-back-button"
+          onClick={() => navigate(-1)}
+        >
           Geri Dön
         </button>
       </div>
@@ -202,9 +166,12 @@ function SellerProfile() {
 
   if (!seller) {
     return (
-      <div className="error-container">
-        <div className="error-message">Satıcı bulunamadı.</div>
-        <button className="back-button" onClick={() => navigate(-1)}>
+      <div className="seller-profile-error">
+        <div className="seller-profile-error-message">Satıcı bulunamadı.</div>
+        <button
+          className="seller-profile-back-button"
+          onClick={() => navigate(-1)}
+        >
           Geri Dön
         </button>
       </div>
@@ -213,8 +180,8 @@ function SellerProfile() {
 
   return (
     <div className="seller-profile-container">
-      <div className="seller-header">
-        <div className="seller-info">
+      <div className="seller-profile-card">
+        <div className="seller-profile-avatar-section">
           <img
             src={
               seller.profilePicture
@@ -222,36 +189,44 @@ function SellerProfile() {
                 : "/default-avatar.png"
             }
             alt={seller.firstName}
-            className="seller-avatar"
+            className="seller-profile-avatar"
           />
-          <div className="seller-details">
-            <h1>
-              {seller.firstName} {seller.lastName}
-            </h1>
-            <p className="seller-bio">
-              {seller.bio || "Henüz biyografi eklenmemiş."}
-            </p>
-            <div className="seller-stats">
-              <div className="stat">
-                <span className="stat-value">{products.length}</span>
-                <span className="stat-label">Ürün</span>
-              </div>
-              <div className="stat">
-                <span className="stat-value">{seller.followerCount || 0}</span>
-                <span className="stat-label">Takipçi</span>
-              </div>
-              <div className="stat">
-                <span className="stat-value">
-                  {seller.sellerRating || "0.0"}
-                </span>
-                <span className="stat-label">Puan</span>
-              </div>
+        </div>
+        <div className="seller-profile-main">
+          <h1 className="seller-profile-name">
+            {seller.firstName} {seller.lastName}
+          </h1>
+          <p className="seller-profile-bio">
+            {seller.bio || "Henüz biyografi eklenmemiş."}
+          </p>
+          <div className="seller-profile-stats">
+            <div>
+              <span className="seller-profile-stat-value">
+                {products.length}
+              </span>
+              <span className="seller-profile-stat-label">Ürün</span>
             </div>
+            <div>
+              <span className="seller-profile-stat-value">
+                {seller.followerCount || 0}
+              </span>
+              <span className="seller-profile-stat-label">Takipçi</span>
+            </div>
+            <div>
+              <span className="seller-profile-stat-value">
+                {seller.sellerRating || "0.0"}
+              </span>
+              <span className="seller-profile-stat-label">Puan</span>
+            </div>
+          </div>
+          <div className="seller-profile-actions">
             {isLoggedIn &&
               userRole === "BUYER" &&
               seller.userType === "SELLER" && (
                 <button
-                  className={`follow-button ${isFollowing ? "following" : ""}`}
+                  className={`seller-profile-follow-btn ${
+                    isFollowing ? "following" : ""
+                  }`}
                   onClick={handleToggleFollow}
                 >
                   {isFollowing ? (
@@ -265,25 +240,37 @@ function SellerProfile() {
                   )}
                 </button>
               )}
+            {isLoggedIn &&
+              seller.userType === "SELLER" &&
+              currentUser &&
+              currentUser.id !== seller.id && (
+                <button
+                  className="seller-profile-message-btn"
+                  onClick={() => navigate(`/messages/${seller.id}`)}
+                >
+                  <FaEnvelope style={{ marginRight: 6 }} />
+                  Mesaj Gönder
+                </button>
+              )}
           </div>
         </div>
       </div>
 
-      <div className="seller-products">
+      <div className="seller-profile-products">
         <h2>Satıcının Ürünleri</h2>
         {products.length === 0 ? (
-          <div className="no-products">
+          <div className="seller-profile-no-products">
             <p>Henüz ürün bulunmuyor.</p>
           </div>
         ) : (
-          <div className="products-grid">
+          <div className="seller-profile-products-grid">
             {products.map((product) => (
               <div
                 key={product.id}
-                className="product-card"
+                className="seller-profile-product-card"
                 onClick={() => navigate(`/products/${product.id}`)}
               >
-                <div className="seller-product-image">
+                <div className="seller-profile-product-image">
                   <img
                     src={
                       product.images && product.images.length > 0
@@ -295,14 +282,18 @@ function SellerProfile() {
                     alt={product.title}
                   />
                 </div>
-                <div className="product-details">
+                <div className="seller-profile-product-details">
                   <h3>{product.title}</h3>
-                  <p className="product-description">
+                  <p className="seller-profile-product-description">
                     {product.description?.substring(0, 100)}
                     {product.description?.length > 100 ? "..." : ""}
                   </p>
-                  <p className="product-category">{product.category?.name}</p>
-                  <p className="product-price">{product.price} TL</p>
+                  <p className="seller-profile-product-category">
+                    {product.category?.name}
+                  </p>
+                  <p className="seller-profile-product-price">
+                    {product.price} TL
+                  </p>
                 </div>
               </div>
             ))}

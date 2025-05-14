@@ -118,16 +118,19 @@ const Messages = ({ user }) => {
           messages.map((msg) => (
             <div
               key={msg.id}
-              className={`message-item message-bubble ${
-                msg.isRead ? "" : "unread"
-              } ${msg.sender.id === user.id ? "sent" : "received"}`}
+              className={`message-bubble ${
+                msg.sender.id === user.id ? "sent" : "received"
+              }`}
             >
-              <div className="message-sender">
-                <b>
+              <div className="message-meta">
+                <span className="message-sender">
                   {msg.sender.id === user.id
                     ? "Siz"
                     : `${msg.sender.firstName} ${msg.sender.lastName}`}
-                </b>
+                  {!msg.isRead && msg.sender.id !== user.id && (
+                    <span className="unread-dot" title="Okunmamış mesaj"></span>
+                  )}
+                </span>
               </div>
               <div className="message-content">{msg.content}</div>
               <div className="message-date">

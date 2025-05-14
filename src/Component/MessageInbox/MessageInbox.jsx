@@ -13,6 +13,7 @@ const MessageInbox = ({ user, onUnreadChange }) => {
   useEffect(() => {
     fetchInbox();
     // eslint-disable-next-line
+    console.log(conversations);
   }, []);
 
   const fetchInbox = async () => {
