@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { FaStar, FaTrash, FaUser, FaPhone, FaEnvelope } from "react-icons/fa";
+import {
+  FaStar,
+  FaTrash,
+  FaUser,
+  FaPhone,
+  FaEnvelope,
+  FaBoxOpen,
+  FaTag,
+  FaClock,
+  FaCheckCircle,
+  FaTimesCircle,
+} from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
 import "./ProductDetail.css";
 
@@ -20,18 +31,16 @@ const ProductDetail = () => {
   const [error, setError] = useState(null);
   const [replyText, setReplyText] = useState({});
   const [editingReply, setEditingReply] = useState(null);
+  const [mainImageIdx, setMainImageIdx] = useState(0);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     const type = localStorage.getItem("userType");
     const payload = token ? JSON.parse(atob(token.split(".")[1])) : null;
-    console.log(payload.sub);
-    const email = payload.sub;
+    const email = payload?.sub;
     setIsLoggedIn(!!token);
     setUserType(type || "");
     setUserEmail(email || "");
-    console.log("userType:", type);
-    console.log(token);
 
     const fetchProduct = async () => {
       if (!id) {
@@ -39,14 +48,12 @@ const ProductDetail = () => {
         setLoading(false);
         return;
       }
-
       try {
         const response = await axios.get(`${API_URL}/api/v1/products/${id}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         setProduct(response.data);
       } catch (error) {
-        console.error("Ürün yüklenirken hata:", error);
         setError("Ürün yüklenirken bir hata oluştu");
       } finally {
         setLoading(false);
@@ -55,15 +62,12 @@ const ProductDetail = () => {
 
     const fetchComments = async () => {
       if (!id) return;
-
       try {
         const response = await axios.get(
           `${API_URL}/api/v1/buyer/comments/product/${id}`
         );
         setComments(response.data);
-      } catch (error) {
-        console.error("Yorumlar yüklenirken hata:", error);
-      }
+      } catch (error) {}
     };
 
     fetchProduct();
@@ -76,12 +80,10 @@ const ProductDetail = () => {
       alert("Yorum yapabilmek için giriş yapmalısınız");
       return;
     }
-
     if (!newComment.trim()) {
       alert("Lütfen bir yorum yazın");
       return;
     }
-
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
@@ -101,7 +103,6 @@ const ProductDetail = () => {
       setNewComment("");
       setRating(5);
     } catch (error) {
-      console.error("Yorum eklenirken hata:", error);
       alert(
         error.response?.data?.message || "Yorum eklenirken bir hata oluştu"
       );
@@ -113,7 +114,6 @@ const ProductDetail = () => {
       alert("Lütfen bir yanıt yazın");
       return;
     }
-
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
@@ -129,7 +129,6 @@ const ProductDetail = () => {
       setReplyText({ ...replyText, [commentId]: "" });
       setEditingReply(null);
     } catch (error) {
-      console.error("Yanıt eklenirken hata:", error);
       alert(
         error.response?.data?.message || "Yanıt eklenirken bir hata oluştu"
       );
@@ -141,21 +140,13 @@ const ProductDetail = () => {
       alert("Lütfen bir yanıt yazın");
       return;
     }
-
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
         `${API_URL}/api/v1/buyer/comments/${commentId}/reply`,
-        {
-          reply: replyText[commentId],
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { reply: replyText[commentId] },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
       setComments(
         comments.map((comment) =>
           comment.id === commentId ? response.data : comment
@@ -164,7 +155,6 @@ const ProductDetail = () => {
       setReplyText({ ...replyText, [commentId]: "" });
       setEditingReply(null);
     } catch (error) {
-      console.error("Yanıt güncellenirken hata:", error);
       alert(
         error.response?.data?.message || "Yanıt güncellenirken bir hata oluştu"
       );
@@ -175,7 +165,6 @@ const ProductDetail = () => {
     if (!window.confirm("Bu yorumu silmek istediğinizden emin misiniz?")) {
       return;
     }
-
     try {
       const token = localStorage.getItem("token");
       await axios.delete(`${API_URL}/api/v1/buyer/comments/${commentId}`, {
@@ -185,53 +174,100 @@ const ProductDetail = () => {
       });
       setComments(comments.filter((comment) => comment.id !== commentId));
     } catch (error) {
-      console.error("Yorum silinirken hata:", error);
       alert(
         error.response?.data?.message || "Yorum silinirken bir hata oluştu"
       );
     }
   };
 
-  if (loading) {
-    return <div className="loading">Yükleniyor...</div>;
-  }
+  if (loading) return <div className="loading">Yükleniyor...</div>;
+  if (error) return <div className="error">{error}</div>;
+  if (!product) return <div className="error">Ürün bulunamadı</div>;
 
-  if (error) {
-    return <div className="error">{error}</div>;
-  }
-
-  if (!product) {
-    return <div className="error">Ürün bulunamadı</div>;
-  }
-
-  // Satıcı kendi ürününe mi bakıyor?
   const isSellerOfProduct = userType === "SELLER";
-  console.log("seller" + isSellerOfProduct);
+  const statusBadge = {
+    AVAILABLE: { text: "Satışta", color: "#4caf50", icon: <FaCheckCircle /> },
+    SOLD: { text: "Satıldı", color: "#e44d26", icon: <FaTimesCircle /> },
+    PENDING_REVIEW: { text: "İncelemede", color: "#ff9800", icon: <FaClock /> },
+    INACTIVE: { text: "Pasif", color: "#aaa", icon: <FaTimesCircle /> },
+    REJECTED: { text: "Reddedildi", color: "#b71c1c", icon: <FaTimesCircle /> },
+  }[product.status] || { text: product.status, color: "#666" };
 
   return (
     <div className="product-detail">
       <div className="product-header">
-        <h1>{product.title}</h1>
+        <h1>{product.title || product.name}</h1>
         <div className="product-meta">
           <span className="price">{product.price} TL</span>
-          <span className="category">{product.category.name}</span>
-          <span className="stock">Stok: {product.stock}</span>
+          <span className="category">
+            <FaBoxOpen /> {product.category?.name}
+          </span>
+          <span className="stock">
+            <FaBoxOpen /> Stok: {product.stock}
+          </span>
+          <span
+            className="status-badge"
+            style={{
+              background: statusBadge.color,
+              color: "#fff",
+              borderRadius: 16,
+              padding: "2px 12px",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              fontWeight: 500,
+              fontSize: 14,
+            }}
+          >
+            {statusBadge.icon} {statusBadge.text}
+          </span>
         </div>
       </div>
 
       <div className="product-content">
         <div className="product-images">
           {product.images && product.images.length > 0 ? (
-            <img
-              src={`${API_URL}${product.images[0]}`}
-              alt={product.title}
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = "/placeholder-image.jpg";
-              }}
-            />
+            <>
+              <img
+                src={`${API_URL}${product.images[mainImageIdx]}`}
+                alt={product.title}
+                className="main-image"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "/placeholder-image.jpg";
+                }}
+              />
+              {product.images.length > 1 && (
+                <div className="image-thumbnails">
+                  {product.images.map((img, idx) => (
+                    <img
+                      key={idx}
+                      src={`${API_URL}${img}`}
+                      alt={`thumb-${idx}`}
+                      className={`thumbnail${
+                        mainImageIdx === idx ? " selected" : ""
+                      }`}
+                      onClick={() => setMainImageIdx(idx)}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "/placeholder-image.jpg";
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           ) : (
             <div className="no-image">Resim yok</div>
+          )}
+          {product.tags && product.tags.length > 0 && (
+            <div className="product-tags">
+              {product.tags.map((tag, idx) => (
+                <span className="tag" key={idx}>
+                  <FaTag /> {tag}
+                </span>
+              ))}
+            </div>
           )}
         </div>
 
@@ -240,6 +276,27 @@ const ProductDetail = () => {
             <h2>Ürün Açıklaması</h2>
             <p>{product.description}</p>
           </div>
+
+          {product.shippingDetails && (
+            <div className="product-shipping">
+              <h2>Kargo Detayları</h2>
+              <p>{product.shippingDetails}</p>
+            </div>
+          )}
+
+          {product.ingredients && (
+            <div className="product-ingredients">
+              <h2>İçindekiler</h2>
+              <p>{product.ingredients}</p>
+            </div>
+          )}
+
+          {product.preparationTime && (
+            <div className="product-preparation">
+              <h2>Hazırlama Süresi</h2>
+              <p>{product.preparationTime}</p>
+            </div>
+          )}
 
           <div className="seller-info">
             <h2>Satıcı Bilgileri</h2>
@@ -279,21 +336,47 @@ const ProductDetail = () => {
               </div>
             </div>
           </div>
-
-          {product.ingredients && (
-            <div className="product-ingredients">
-              <h2>İçindekiler</h2>
-              <p>{product.ingredients}</p>
-            </div>
-          )}
-
-          {product.preparationTime && (
-            <div className="product-preparation">
-              <h2>Hazırlama Süresi</h2>
-              <p>{product.preparationTime}</p>
-            </div>
-          )}
         </div>
+      </div>
+
+      <div className="product-extra-info">
+        <h2>Ürün Detayları</h2>
+        <ul>
+          <li>
+            <strong>Fiyat:</strong> {product.price} TL
+          </li>
+          <li>
+            <strong>Stok:</strong> {product.stock}
+          </li>
+          <li>
+            <strong>Kategori:</strong> {product.category?.name}
+          </li>
+          {product.shippingDetails && (
+            <li>
+              <strong>Kargo Detayları:</strong> {product.shippingDetails}
+            </li>
+          )}
+          {product.ingredients && (
+            <li>
+              <strong>İçindekiler:</strong> {product.ingredients}
+            </li>
+          )}
+          {product.preparationTime && (
+            <li>
+              <strong>Hazırlama Süresi:</strong> {product.preparationTime}
+            </li>
+          )}
+          {product.rating !== undefined && (
+            <li>
+              <strong>Ortalama Puan:</strong> {product.rating}
+            </li>
+          )}
+          {product.reviewCount !== undefined && (
+            <li>
+              <strong>Yorum Sayısı:</strong> {product.reviewCount}
+            </li>
+          )}
+        </ul>
       </div>
 
       <div className="comments-section">
@@ -336,6 +419,15 @@ const ProductDetail = () => {
                   <span className="comment-date">
                     {new Date(comment.createdAt).toLocaleDateString()}
                   </span>
+                  {(isSellerOfProduct ||
+                    (userEmail && comment.user.email === userEmail)) && (
+                    <button
+                      className="delete-comment"
+                      onClick={() => handleDeleteComment(comment.id)}
+                    >
+                      <FaTrash /> Sil
+                    </button>
+                  )}
                 </div>
                 <div className="comment-content">
                   <div className="comment-rating">
@@ -415,15 +507,6 @@ const ProductDetail = () => {
                     </div>
                   )}
                 </div>
-                {isSellerOfProduct ||
-                (userEmail && comment.user.email === userEmail) ? (
-                  <button
-                    className="delete-comment"
-                    onClick={() => handleDeleteComment(comment.id)}
-                  >
-                    <FaTrash /> Sil
-                  </button>
-                ) : null}
               </div>
             ))
           )}
