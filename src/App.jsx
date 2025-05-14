@@ -9,15 +9,18 @@ import Challenge from "./pages/Challenge";
 import ProductList from "./Component/ProductList";
 import Profile from "./Component/Profile";
 import Admin from "./Component/Admin";
+import Messages from "./Component/Messages/Messages";
 import SellerDashboard from "./SellerDashboard";
 import SellerProfile from "./Component/Seller/SellerProfile";
 import ProductDetail from "./Component/ProductDetail/ProductDetail";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import MessageInbox from "./Component/MessageInbox/MessageInbox";
 
 function App() {
   const [categories, setCategories] = useState([]);
   const [user, setUser] = useState(null);
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -73,10 +76,31 @@ function App() {
       await fetchUserProfile(token);
     }
   };
+  const fetchUnreadMessages = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      const res = await axios.get(
+        "http://localhost:8080/api/v1/messages/unread-count",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setUnreadMessages(res.data);
+    } catch (err) {
+      setUnreadMessages(0);
+    }
+  };
 
   return (
     <div className="App">
-      <Header user={user} categories={categories} setUser={setUser} />
+      <Header
+        user={user}
+        categories={categories}
+        setUser={setUser}
+        unreadMessages={unreadMessages}
+        fetchUnreadMessages={fetchUnreadMessages}
+      />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login updateUser={updateUser} />} />
@@ -105,6 +129,13 @@ function App() {
             )
           }
         />
+        <Route
+          path="/messages"
+          element={
+            <MessageInbox user={user} onUnreadChange={fetchUnreadMessages} />
+          }
+        />
+        <Route path="/messages/:userId" element={<Messages user={user} />} />
       </Routes>
       <Footer />
     </div>

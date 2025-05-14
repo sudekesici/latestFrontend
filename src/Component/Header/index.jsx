@@ -1,24 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { FaEnvelope } from "react-icons/fa";
 import "./Header.css";
 
-const Header = ({ user, categories, setUser }) => {
+const Header = ({
+  user,
+  categories,
+  setUser,
+  unreadMessages,
+  fetchUnreadMessages,
+}) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  // Mesajlar için state
+  const [messages, setMessages] = useState([]);
+  const [showMessages, setShowMessages] = useState(false);
+
   const navigate = useNavigate();
 
-  // Bildirimleri çek
   useEffect(() => {
     if (user) {
       fetchNotifications();
       fetchUnreadCount();
+      fetchMessages();
+      fetchUnreadMessages();
     }
     // eslint-disable-next-line
   }, [user]);
 
+  // Bildirimler
   const fetchNotifications = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -30,7 +44,6 @@ const Header = ({ user, categories, setUser }) => {
         }
       );
       setNotifications(res.data);
-      console.log(res.data);
     } catch (err) {
       setNotifications([]);
     }
@@ -47,7 +60,6 @@ const Header = ({ user, categories, setUser }) => {
         }
       );
       setUnreadCount(res.data);
-      console.log(res.data);
     } catch (err) {
       setUnreadCount(0);
     }
@@ -67,6 +79,96 @@ const Header = ({ user, categories, setUser }) => {
       fetchNotifications();
       fetchUnreadCount();
     } catch (err) {}
+  };
+
+  // Mesajlar
+  const fetchMessages = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      const res = await axios.get("http://localhost:8080/api/v1/messages", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMessages(res.data);
+    } catch (err) {
+      setMessages([]);
+    }
+  };
+
+  // Tüm mesajları okundu yap
+  const handleMarkAllMessagesRead = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      await axios.post(
+        "http://localhost:8080/api/v1/messages/mark-all-read",
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      fetchMessages();
+      fetchUnreadMessages();
+    } catch (err) {
+      console.error("Mesajlar okundu olarak işaretlenemedi:", err);
+    }
+  };
+
+  // Tüm mesajları okunmadı yap
+  const handleUnmarkAllMessagesRead = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      await axios.post(
+        "http://localhost:8080/api/v1/messages/unmark-all-read",
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      fetchMessages();
+      fetchUnreadMessages();
+    } catch (err) {
+      console.error("Mesajlar okunmadı olarak işaretlenemedi:", err);
+    }
+  };
+
+  // Tek mesajı okundu yap
+  const handleMarkMessageRead = async (messageId) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      await axios.post(
+        `http://localhost:8080/api/v1/messages/${messageId}/mark-read`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      fetchMessages();
+      fetchUnreadMessages();
+    } catch (err) {
+      console.error("Mesaj okundu olarak işaretlenemedi:", err);
+    }
+  };
+
+  // Tek mesajı okunmadı yap
+  const handleUnmarkMessageRead = async (messageId) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      await axios.post(
+        `http://localhost:8080/api/v1/messages/${messageId}/unmark-read`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      fetchMessages();
+      fetchUnreadMessages();
+    } catch (err) {
+      console.error("Mesaj okunmadı olarak işaretlenemedi:", err);
+    }
   };
 
   const handleLogout = () => {
@@ -111,7 +213,6 @@ const Header = ({ user, categories, setUser }) => {
           Ürünler
         </Link>
         <Link to="/about">Hakkımızda</Link>
-        {/* Kategoriler dropdown'ı istersen buraya ekleyebilirsin */}
       </nav>
 
       <div className="header-right">
@@ -164,6 +265,92 @@ const Header = ({ user, categories, setUser }) => {
           </div>
         )}
 
+        {/* Mesajlar */}
+        {user && (
+          <div className="message-section">
+            <button
+              className="message-icon"
+              onClick={() => {
+                setShowMessages(!showMessages);
+                if (unreadMessages > 0) handleMarkAllMessagesRead();
+              }}
+            >
+              <FaEnvelope />
+              {unreadMessages > 0 && (
+                <span className="message-badge">{unreadMessages}</span>
+              )}
+            </button>
+            {showMessages && (
+              <div className="message-dropdown">
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <h4>Mesajlar</h4>
+                </div>
+                {messages.length === 0 ? (
+                  <div className="message-empty">Hiç mesajınız yok.</div>
+                ) : (
+                  messages.slice(0, 5).map((m) => (
+                    <div
+                      key={m.id}
+                      className={`message-item${m.isRead ? "" : " unread"}`}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <div
+                        className="message-sender"
+                        onClick={() =>
+                          navigate(
+                            `/profile/${
+                              m.sender.id === user.id
+                                ? m.receiver.id
+                                : m.sender.id
+                            }`
+                          )
+                        }
+                        style={{ cursor: "pointer" }}
+                        title="Profili Görüntüle"
+                      >
+                        <b>{m.sender.firstName || "Kullanıcı"}</b>
+                      </div>
+                      <div
+                        className="message-preview"
+                        onClick={() => {
+                          setShowMessages(false);
+                          // Karşı tarafın id'sini bul
+                          const otherUserId =
+                            m.sender.id === user.id
+                              ? m.receiver.id
+                              : m.sender.id;
+                          navigate(`/messages/${otherUserId}`);
+                        }}
+                        style={{ cursor: "pointer" }}
+                        title="Mesajlaşmaya Git"
+                      >
+                        {m.content.substring(0, 30)}...
+                      </div>
+                      <div className="message-date">
+                        {new Date(m.createdAt).toLocaleString()}
+                      </div>
+                    </div>
+                  ))
+                )}
+                <div
+                  className="message-all-link"
+                  onClick={() => {
+                    setShowMessages(false);
+                    navigate("/messages");
+                  }}
+                >
+                  Tüm Mesajlar
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         {/* Kullanıcı menüsü */}
         <div className="auth-section">
           {user ? (
