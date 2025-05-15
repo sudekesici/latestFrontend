@@ -695,3 +695,23 @@
     gap: 10px;
   }
 }
+.main-product-list-offer-button {
+  width: 100%;
+  padding: 12px;
+  background: #e44d26;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 600;
+  transition: background 0.2s;
+  margin-top: 14px;
+}
+.main-product-list-offer-button:hover {
+  background: #b71c1c;
+}

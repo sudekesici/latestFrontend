@@ -38,6 +38,7 @@ function ProductList() {
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const [offers, setOffers] = useState([]);
   const navigate = useNavigate();
 
   const fetchFavorites = async () => {
@@ -80,6 +81,8 @@ function ProductList() {
         if (isLoggedIn && userRole === "BUYER") {
           await fetchFavorites();
           await fetchFollowing();
+          const offersRes = await api.get("/buyer/offers/my-offers");
+          setOffers(offersRes.data);
         }
       } catch (err) {
         setError("Veriler yüklenirken bir hata oluştu.");
@@ -330,103 +333,123 @@ function ProductList() {
         </div>
       ) : (
         <div className="main-product-list-grid">
-          {filteredProducts.map((product) => (
-            <div key={product.id} className="main-product-list-card">
-              <div className="main-product-list-image">
-                <img
-                  src={
-                    product.images && product.images.length > 0
-                      ? `http://localhost:8080/uploads/products/${
-                          product.id
-                        }/${product.images[0].split("/").pop()}`
-                      : "/default-product.png"
-                  }
-                  alt={product.title}
-                  onClick={() => navigate(`/products/${product.id}`)}
-                />
-                {isLoggedIn && userRole === "BUYER" && (
-                  <button
-                    className={`main-product-list-favorite-button ${
-                      favorites.includes(String(product.id)) ? "favorited" : ""
-                    }`}
-                    onClick={(e) => handleToggleFavorite(product.id, e)}
-                    aria-label={
-                      favorites.includes(String(product.id))
-                        ? "Favorilerden çıkar"
-                        : "Favorilere ekle"
-                    }
-                  >
-                    {favorites.includes(String(product.id)) ? (
-                      <FaHeart />
-                    ) : (
-                      <FaRegHeart />
-                    )}
-                  </button>
-                )}
-              </div>
-              <div className="main-product-list-details">
-                <h4 onClick={() => navigate(`/products/${product.id}`)}>
-                  {product.title}
-                </h4>
-                <p className="main-product-list-description">
-                  {product.description?.substring(0, 100)}
-                  {product.description?.length > 100 ? "..." : ""}
-                </p>
-                <p className="main-product-list-category">
-                  {product.category?.name}
-                </p>
-                <p className="main-product-list-price">{product.price} TL</p>
-                <div className="main-product-list-seller-info">
+          {filteredProducts.map((product) => {
+            const userAcceptedOffer = offers.find(
+              (offer) =>
+                offer.product.id === product.id && offer.status === "ACCEPTED"
+            );
+
+            return (
+              <div key={product.id} className="main-product-list-card">
+                <div className="main-product-list-image">
                   <img
                     src={
-                      product.seller.profilePicture
-                        ? `http://localhost:8080/profiles/${product.seller.profilePicture}`
-                        : "/default-avatar.png"
+                      product.images && product.images.length > 0
+                        ? `http://localhost:8080/uploads/products/${
+                            product.id
+                          }/${product.images[0].split("/").pop()}`
+                        : "/default-product.png"
                     }
-                    alt={product.seller.firstName}
-                    className="main-product-list-seller-avatar"
-                    onClick={() => navigate(`/seller/${product.seller.id}`)}
+                    alt={product.title}
+                    onClick={() => navigate(`/products/${product.id}`)}
                   />
-                  <div className="main-product-list-seller-details">
-                    <span
-                      className="main-product-list-seller-name"
-                      onClick={() => navigate(`/seller/${product.seller.id}`)}
+                  {isLoggedIn && userRole === "BUYER" && (
+                    <button
+                      className={`main-product-list-favorite-button ${
+                        favorites.includes(String(product.id))
+                          ? "favorited"
+                          : ""
+                      }`}
+                      onClick={(e) => handleToggleFavorite(product.id, e)}
+                      aria-label={
+                        favorites.includes(String(product.id))
+                          ? "Favorilerden çıkar"
+                          : "Favorilere ekle"
+                      }
                     >
-                      {product.seller.firstName} {product.seller.lastName}
-                    </span>
-                    {isLoggedIn && userRole === "BUYER" && (
-                      <button
-                        className={`main-product-list-follow-button ${
-                          followedSellers.includes(product.seller.id)
-                            ? "following"
-                            : ""
-                        }`}
-                        onClick={(e) =>
-                          handleToggleFollow(product.seller.id, e)
-                        }
-                      >
-                        {followedSellers.includes(product.seller.id) ? (
-                          <>
-                            <FaUserCheck /> Takipte
-                          </>
-                        ) : (
-                          <>
-                            <FaUserPlus /> Takip Et
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
+                      {favorites.includes(String(product.id)) ? (
+                        <FaHeart />
+                      ) : (
+                        <FaRegHeart />
+                      )}
+                    </button>
+                  )}
                 </div>
-                <button
-                  className="main-product-list-add-to-cart"
-                  onClick={(e) => handleAddToCart(product.id, e)}
-                >
-                  <FaShoppingCart /> Sepete Ekle
-                </button>
+                <div className="main-product-list-details">
+                  <h4 onClick={() => navigate(`/products/${product.id}`)}>
+                    {product.title}
+                  </h4>
+                  <p className="main-product-list-description">
+                    {product.description?.substring(0, 100)}
+                    {product.description?.length > 100 ? "..." : ""}
+                  </p>
+                  <p className="main-product-list-category">
+                    {product.category?.name}
+                  </p>
+                  <p className="main-product-list-price">{product.price} TL</p>
+                  <div className="main-product-list-seller-info">
+                    <img
+                      src={
+                        product.seller.profilePicture
+                          ? `http://localhost:8080/profiles/${product.seller.profilePicture}`
+                          : "/default-avatar.png"
+                      }
+                      alt={product.seller.firstName}
+                      className="main-product-list-seller-avatar"
+                      onClick={() => navigate(`/seller/${product.seller.id}`)}
+                    />
+                    <div className="main-product-list-seller-details">
+                      <span
+                        className="main-product-list-seller-name"
+                        onClick={() => navigate(`/seller/${product.seller.id}`)}
+                      >
+                        {product.seller.firstName} {product.seller.lastName}
+                      </span>
+                      {isLoggedIn && userRole === "BUYER" && (
+                        <button
+                          className={`main-product-list-follow-button ${
+                            followedSellers.includes(product.seller.id)
+                              ? "following"
+                              : ""
+                          }`}
+                          onClick={(e) =>
+                            handleToggleFollow(product.seller.id, e)
+                          }
+                        >
+                          {followedSellers.includes(product.seller.id) ? (
+                            <>
+                              <FaUserCheck /> Takipte
+                            </>
+                          ) : (
+                            <>
+                              <FaUserPlus /> Takip Et
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {isLoggedIn &&
+                    userRole === "BUYER" &&
+                    (userAcceptedOffer ? (
+                      <button
+                        className="main-product-list-add-to-cart"
+                        onClick={(e) => handleAddToCart(product.id, e)}
+                      >
+                        <FaShoppingCart /> Sepete Ekle
+                      </button>
+                    ) : (
+                      <button
+                        className="main-product-list-offer-button"
+                        onClick={() => navigate(`/products/${product.id}`)}
+                      >
+                        Teklif Ver
+                      </button>
+                    ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
