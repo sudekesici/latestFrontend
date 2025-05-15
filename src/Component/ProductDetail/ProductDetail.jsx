@@ -11,6 +11,8 @@ import {
   FaClock,
   FaCheckCircle,
   FaTimesCircle,
+  FaMoneyBillWave,
+  FaPaperPlane,
 } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
 import "./ProductDetail.css";
@@ -22,6 +24,7 @@ const ProductDetail = () => {
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [comments, setComments] = useState([]);
+  const [offers, setOffers] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [rating, setRating] = useState(5);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -32,6 +35,11 @@ const ProductDetail = () => {
   const [replyText, setReplyText] = useState({});
   const [editingReply, setEditingReply] = useState(null);
   const [mainImageIdx, setMainImageIdx] = useState(0);
+
+  // OFFER STATE
+  const [offerAmount, setOfferAmount] = useState("");
+  const [offerMessage, setOfferMessage] = useState("");
+  const [offerLoading, setOfferLoading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -70,9 +78,91 @@ const ProductDetail = () => {
       } catch (error) {}
     };
 
+    // Teklifleri çek (sadece seller ise veya buyer kendi teklifini görmek isterse)
+    const fetchOffers = async () => {
+      if (!id) return;
+      try {
+        const token = localStorage.getItem("token");
+        if (type === "SELLER") {
+          // Satıcı, ürününe gelen teklifleri görebilir
+          const response = await axios.get(
+            `${API_URL}/api/v1/seller/offers/product/${id}`,
+            { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+          );
+          setOffers(response.data);
+        } else if (type === "BUYER") {
+          // Alıcı, kendi tekliflerini görebilir
+          const response = await axios.get(
+            `${API_URL}/api/v1/buyer/offers/my-offers`,
+            { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+          );
+          setOffers(response.data.filter((o) => o.product.id == id));
+        }
+      } catch (error) {
+        setOffers([]);
+      }
+    };
+
     fetchProduct();
     fetchComments();
+    fetchOffers();
+    // eslint-disable-next-line
   }, [id]);
+
+  // TEKLİF GÖNDERME
+  const handleSendOffer = async (e) => {
+    e.preventDefault();
+    if (!isLoggedIn) {
+      alert("Teklif vermek için giriş yapmalısınız");
+      return;
+    }
+    if (!offerAmount || offerAmount <= 0) {
+      alert("Geçerli bir teklif tutarı girin");
+      return;
+    }
+    setOfferLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${API_URL}/api/v1/buyer/offers`,
+        {
+          productId: id,
+          offerAmount: offerAmount,
+          message: offerMessage,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      alert("Teklifiniz gönderildi!");
+      setOfferAmount("");
+      setOfferMessage("");
+      // Teklifleri tekrar çek
+      if (userType === "BUYER" || userType === "SELLER") {
+        const fetchOffers = async () => {
+          if (userType === "SELLER") {
+            const response = await axios.get(
+              `${API_URL}/api/v1/seller/offers/product/${id}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setOffers(response.data);
+          } else if (userType === "BUYER") {
+            const response = await axios.get(
+              `${API_URL}/api/v1/buyer/offers/my-offers`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setOffers(response.data.filter((o) => o.product.id == id));
+          }
+        };
+        fetchOffers();
+      }
+    } catch (error) {
+      alert(
+        error.response?.data?.message || "Teklif gönderilirken bir hata oluştu"
+      );
+    }
+    setOfferLoading(false);
+  };
 
   const handleAddComment = async (e) => {
     e.preventDefault();
@@ -192,6 +282,157 @@ const ProductDetail = () => {
     INACTIVE: { text: "Pasif", color: "#aaa", icon: <FaTimesCircle /> },
     REJECTED: { text: "Reddedildi", color: "#b71c1c", icon: <FaTimesCircle /> },
   }[product.status] || { text: product.status, color: "#666" };
+
+  // TEKLİF LİSTELEME
+  const renderOffers = () => {
+    if (!offers || offers.length === 0) {
+      return <p>Henüz teklif yok.</p>;
+    }
+    const getStatusText = (status) => {
+      switch (status) {
+        case "PENDING":
+          return "Beklemede";
+        case "ACCEPTED":
+          return "Kabul Edildi";
+        case "REJECTED":
+          return "Reddedildi";
+        case "CANCELLED":
+          return "İptal Edildi";
+        default:
+          return status;
+      }
+    };
+    return (
+      <ul className="offer-list">
+        {offers.map((offer) => (
+          <li key={offer.id} className="offer-item">
+            <span>
+              <FaMoneyBillWave /> <b>{offer.offerAmount} TL</b>
+            </span>
+            {offer.message && (
+              <span className="offer-message">"{offer.message}"</span>
+            )}
+            <span className={`offer-status offer-status-${offer.status}`}>
+              {getStatusText(offer.status)}
+            </span>
+            {/* Detaya Git butonu */}
+            <button
+              style={{
+                marginLeft: 8,
+                background: "#eee",
+                color: "#222",
+                border: "none",
+                borderRadius: 4,
+                padding: "4px 12px",
+                cursor: "pointer",
+              }}
+              onClick={() => navigate(`/offers/${offer.id}`)}
+            >
+              Detaya Git
+            </button>
+            {/* Alıcı için iptal */}
+            {userType === "BUYER" && offer.status === "PENDING" && (
+              <button
+                onClick={async () => {
+                  if (
+                    window.confirm("Teklifinizi iptal etmek istiyor musunuz?")
+                  ) {
+                    try {
+                      const token = localStorage.getItem("token");
+                      await axios.post(
+                        `${API_URL}/api/v1/buyer/offers/${offer.id}/cancel`,
+                        {},
+                        {
+                          headers: {
+                            Authorization: `Bearer ${token}`,
+                          },
+                        }
+                      );
+                      setOffers(offers.filter((o) => o.id !== offer.id));
+                    } catch (error) {
+                      alert(
+                        error.response?.data?.message ||
+                          "Teklif iptal edilirken hata oluştu"
+                      );
+                    }
+                  }
+                }}
+              >
+                İptal Et
+              </button>
+            )}
+            {/* Satıcı için onayla/reddet */}
+            {userType === "SELLER" && offer.status === "PENDING" && (
+              <>
+                <button
+                  style={{
+                    marginLeft: 8,
+                    background: "#4caf50",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 4,
+                    padding: "4px 12px",
+                    cursor: "pointer",
+                  }}
+                  onClick={async () => {
+                    try {
+                      const token = localStorage.getItem("token");
+                      await axios.post(
+                        `${API_URL}/api/v1/seller/offers/${offer.id}/accept`,
+                        {},
+                        { headers: { Authorization: `Bearer ${token}` } }
+                      );
+                      // Teklifleri tekrar çek
+                      const response = await axios.get(
+                        `${API_URL}/api/v1/seller/offers/product/${id}`,
+                        { headers: { Authorization: `Bearer ${token}` } }
+                      );
+                      setOffers(response.data);
+                    } catch (error) {
+                      alert("Onaylanamadı!");
+                    }
+                  }}
+                >
+                  Onayla
+                </button>
+                <button
+                  style={{
+                    marginLeft: 8,
+                    background: "#e44d26",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 4,
+                    padding: "4px 12px",
+                    cursor: "pointer",
+                  }}
+                  onClick={async () => {
+                    try {
+                      const token = localStorage.getItem("token");
+                      await axios.post(
+                        `${API_URL}/api/v1/seller/offers/${offer.id}/reject`,
+                        {},
+                        { headers: { Authorization: `Bearer ${token}` } }
+                      );
+                      // Teklifleri tekrar çek
+                      const response = await axios.get(
+                        `${API_URL}/api/v1/seller/offers/product/${id}`,
+                        { headers: { Authorization: `Bearer ${token}` } }
+                      );
+                      setOffers(response.data);
+                    } catch (error) {
+                      alert("Reddedilemedi!");
+                    }
+                  }}
+                >
+                  Reddet
+                </button>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+    );
+  };
 
   return (
     <div className="product-detail">
@@ -337,6 +578,45 @@ const ProductDetail = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* TEKLİF FORMU ve TEKLİFLER */}
+      <div className="offers-section">
+        <h2>Teklifler</h2>
+        {isLoggedIn && userType === "BUYER" && (
+          <form onSubmit={handleSendOffer} className="offer-form">
+            <div>
+              <label>
+                Teklif Tutarı (TL):
+                <input
+                  type="number"
+                  min="1"
+                  step="0.01"
+                  value={offerAmount}
+                  onChange={(e) => setOfferAmount(e.target.value)}
+                  required
+                  disabled={offerLoading}
+                />
+              </label>
+            </div>
+            <div>
+              <label>
+                Mesaj (isteğe bağlı):
+                <input
+                  type="text"
+                  value={offerMessage}
+                  onChange={(e) => setOfferMessage(e.target.value)}
+                  maxLength={255}
+                  disabled={offerLoading}
+                />
+              </label>
+            </div>
+            <button type="submit" disabled={offerLoading}>
+              <FaPaperPlane /> Teklif Gönder
+            </button>
+          </form>
+        )}
+        <div className="offers-list">{renderOffers()}</div>
       </div>
 
       <div className="product-extra-info">

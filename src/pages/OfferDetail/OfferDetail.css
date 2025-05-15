@@ -1,0 +1,110 @@
+.offer-detail-container {
+  max-width: 480px;
+  margin: 48px auto 0 auto;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 16px rgba(44, 62, 80, 0.1);
+  padding: 36px 32px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.offer-detail-container h2 {
+  font-size: 1.5rem;
+  color: #222;
+  margin-bottom: 18px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.offer-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f1f1;
+  font-size: 1.08rem;
+}
+
+.offer-detail-label {
+  color: #888;
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.offer-detail-status {
+  font-weight: 600;
+  padding: 2px 12px;
+  border-radius: 10px;
+  font-size: 1rem;
+  margin-left: 8px;
+  background: #eee;
+  color: #444;
+}
+
+.offer-status-PENDING {
+  background: #fff3cd;
+  color: #b8860b;
+}
+.offer-status-ACCEPTED {
+  background: #d4edda;
+  color: #388e3c;
+}
+.offer-status-REJECTED {
+  background: #f8d7da;
+  color: #b71c1c;
+}
+.offer-status-CANCELLED {
+  background: #e0e0e0;
+  color: #888;
+}
+
+.offer-detail-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.offer-detail-accept {
+  background: #4caf50;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 22px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.offer-detail-accept:hover {
+  background: #388e3c;
+}
+
+.offer-detail-reject {
+  background: #e44d26;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 22px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.offer-detail-reject:hover {
+  background: #b71c1c;
+}
+
+.offer-detail-loading,
+.offer-detail-error {
+  max-width: 480px;
+  margin: 48px auto 0 auto;
+  background: #fff5f5;
+  color: #e44d26;
+  border-radius: 10px;
+  padding: 32px;
+  text-align: center;
+  font-size: 1.1rem;
+}

@@ -13,6 +13,7 @@ import Messages from "./Component/Messages/Messages";
 import SellerDashboard from "./SellerDashboard";
 import SellerProfile from "./Component/Seller/SellerProfile";
 import ProductDetail from "./Component/ProductDetail/ProductDetail";
+import OfferDetail from "./pages/OfferDetail/OfferDetail";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import MessageInbox from "./Component/MessageInbox/MessageInbox";
@@ -136,6 +137,7 @@ function App() {
           }
         />
         <Route path="/messages/:userId" element={<Messages user={user} />} />
+        <Route path="/offers/:offerId" element={<OfferDetail />} />
       </Routes>
       <Footer />
     </div>
