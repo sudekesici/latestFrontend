@@ -362,6 +362,18 @@ const Header = ({
                   >
                     Profilim
                   </Link>
+                  {user.userType === "BUYER" && (
+                    <Link
+                      to="/orders"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleNavigation("/orders");
+                      }}
+                    >
+                      Siparişlerim
+                    </Link>
+                  )}
+
                   {user.userType === "SELLER" && (
                     <Link
                       to="/seller-dashboard"
