@@ -20,6 +20,7 @@ import MessageInbox from "./Component/MessageInbox/MessageInbox";
 import Cart from "./Component/Cart/Cart";
 import Orders from "./Component/Orders/Orders";
 import OrderDetail from "./Component/OrderDetail/OrderDetail";
+import SellerOrders from "./Component/SellerOrders/SellerOrders";
 
 function App() {
   const [categories, setCategories] = useState([]);
@@ -144,6 +145,7 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/orders/:id" element={<OrderDetail />} />
+        <Route path="/seller-orders" element={<SellerOrders />} />
       </Routes>
       <Footer />
     </div>

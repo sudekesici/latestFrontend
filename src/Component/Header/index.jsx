@@ -385,6 +385,17 @@ const Header = ({
                       Kullanici Paneli
                     </Link>
                   )}
+                  {user.userType === "SELLER" && (
+                    <Link
+                      to="/seller-orders"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleNavigation("/seller-orders");
+                      }}
+                    >
+                      Satışlarım
+                    </Link>
+                  )}
                   {user.userType === "ADMIN" && (
                     <Link
                       to="/admin"
