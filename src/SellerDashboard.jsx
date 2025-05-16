@@ -24,6 +24,8 @@ const SellerDashboard = () => {
   const [productCategoryFilter, setProductCategoryFilter] = useState("ALL");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [suggestedPrice, setSuggestedPrice] = useState(null);
+  const [suggesting, setSuggesting] = useState(false);
   const [editImages, setEditImages] = useState([]);
   const [editFormData, setEditFormData] = useState({
     title: "",
@@ -114,6 +116,22 @@ const SellerDashboard = () => {
       console.error("Profil güncellenirken hata:", err);
       setError("Profil güncellenirken bir hata oluştu.");
     }
+  };
+
+  const handleCloseAddProductModal = () => {
+    setShowAddProductModal(false);
+    setError(null);
+    setSuggestedPrice(null);
+    setSuggesting(false);
+    setNewProduct({
+      title: "",
+      description: "",
+      price: "",
+      stock: "",
+      categoryId: "",
+      shippingDetails: "",
+      images: [],
+    });
   };
 
   const [sortOrder, setSortOrder] = useState("newest");
@@ -228,6 +246,8 @@ const SellerDashboard = () => {
       setShowEditModal(false);
       setSelectedProduct(null);
       setEditImages([]);
+      setSuggestedPrice(null);
+      setSuggesting(false);
       alert("Ürün başarıyla güncellendi");
     } catch (error) {
       console.error("Güncelleme hatası:", {
@@ -353,6 +373,24 @@ const SellerDashboard = () => {
         product.category.id.toString() === productCategoryFilter);
     return matchesSearch && matchesCategory;
   });
+
+  // Yapay zeka fiyat önerisi
+  const handleSuggestPrice = async () => {
+    setSuggesting(true);
+    setSuggestedPrice(null);
+    try {
+      const response = await api.post("/api/v1/ai/price-suggestion", {
+        title: newProduct.title,
+        description: newProduct.description,
+        categoryId: newProduct.categoryId,
+        stock: newProduct.stock,
+      });
+      setSuggestedPrice(response.data.suggestedPrice);
+    } catch (error) {
+      alert(error.response?.data?.error || "Fiyat önerisi alınamadı.");
+    }
+    setSuggesting(false);
+  };
 
   return (
     <div className="seller-dashboard">
@@ -571,7 +609,7 @@ const SellerDashboard = () => {
                 <button
                   type="button"
                   className="cancel-button"
-                  onClick={() => setShowProfileEditModal(false)}
+                  onClick={handleCloseAddProductModal}
                 >
                   İptal
                 </button>
@@ -649,6 +687,34 @@ const SellerDashboard = () => {
                   min="0"
                   step="0.01"
                 />
+                <button
+                  type="button"
+                  onClick={handleSuggestPrice}
+                  disabled={
+                    suggesting ||
+                    !newProduct.title ||
+                    !newProduct.description ||
+                    !newProduct.categoryId
+                  }
+                  style={{ marginLeft: 8 }}
+                >
+                  {suggesting ? "Öneriliyor..." : "Fiyat Öner"}
+                </button>
+                {suggestedPrice && (
+                  <div className="suggested-price">
+                    <strong>Yapay Zeka Fiyat Önerisi:</strong> {suggestedPrice}{" "}
+                    TL
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setNewProduct({ ...newProduct, price: suggestedPrice })
+                      }
+                      style={{ marginLeft: 8 }}
+                    >
+                      Uygula
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="form-group">

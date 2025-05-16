@@ -607,3 +607,86 @@
 .modal-content::-webkit-scrollbar-thumb:hover {
   background: #ccc;
 }
+
+/* Fiyat önerisi ve butonları için özel stil */
+.form-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.form-group label {
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #222;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 15px;
+  margin-bottom: 4px;
+  transition: border 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  border-color: #50e3c2;
+  outline: none;
+}
+
+.form-group button[type="button"] {
+  background: #50e3c2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 16px;
+  font-size: 14px;
+  margin-top: 6px;
+  margin-bottom: 0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.form-group button[type="button"]:hover {
+  background: #3dd1b0;
+}
+
+.suggested-price {
+  margin-top: 10px;
+  background: #f0f9f7;
+  color: #007bff;
+  font-weight: 500;
+  border-radius: 6px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.suggested-price strong {
+  color: #222;
+  margin-right: 6px;
+}
+
+.suggested-price button {
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 13px;
+  margin-left: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.suggested-price button:hover {
+  background: #0056b3;
+}

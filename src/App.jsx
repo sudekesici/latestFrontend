@@ -21,7 +21,7 @@ import Cart from "./Component/Cart/Cart";
 import Orders from "./Component/Orders/Orders";
 import OrderDetail from "./Component/OrderDetail/OrderDetail";
 import SellerOrders from "./Component/SellerOrders/SellerOrders";
-
+import ChatBot from "./ChatBot/ChatBot";
 function App() {
   const [categories, setCategories] = useState([]);
   const [user, setUser] = useState(null);
@@ -106,47 +106,52 @@ function App() {
         unreadMessages={unreadMessages}
         fetchUnreadMessages={fetchUnreadMessages}
       />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login updateUser={updateUser} />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/challenge" element={<Challenge />} />
-        <Route path="/products" element={<ProductList />} />
-        <Route path="/products/:id" element={<ProductDetail />} />
-        <Route path="/seller/:id" element={<SellerProfile />} />
-        <Route
-          path="/profile/:id"
-          element={user ? <Profile /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/admin"
-          element={user?.userType === "ADMIN" ? <Admin /> : <Navigate to="/" />}
-        />
-        {/* Satıcı dashboard'u için yeni route */}
-        <Route
-          path="/seller-dashboard"
-          element={
-            user?.userType === "SELLER" ? (
-              <SellerDashboard />
-            ) : (
-              <Navigate to="/" />
-            )
-          }
-        />
-        <Route
-          path="/messages"
-          element={
-            <MessageInbox user={user} onUnreadChange={fetchUnreadMessages} />
-          }
-        />
-        <Route path="/messages/:userId" element={<Messages user={user} />} />
-        <Route path="/offers/:offerId" element={<OfferDetail />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/orders" element={<Orders />} />
-        <Route path="/orders/:id" element={<OrderDetail />} />
-        <Route path="/seller-orders" element={<SellerOrders />} />
-      </Routes>
+      <div className="main-content">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login updateUser={updateUser} />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/challenge" element={<Challenge />} />
+          <Route path="/products" element={<ProductList />} />
+          <Route path="/products/:id" element={<ProductDetail />} />
+          <Route path="/seller/:id" element={<SellerProfile />} />
+          <Route
+            path="/profile/:id"
+            element={user ? <Profile /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/admin"
+            element={
+              user?.userType === "ADMIN" ? <Admin /> : <Navigate to="/" />
+            }
+          />
+          {/* Satıcı dashboard'u için yeni route */}
+          <Route
+            path="/seller-dashboard"
+            element={
+              user?.userType === "SELLER" ? (
+                <SellerDashboard />
+              ) : (
+                <Navigate to="/" />
+              )
+            }
+          />
+          <Route
+            path="/messages"
+            element={
+              <MessageInbox user={user} onUnreadChange={fetchUnreadMessages} />
+            }
+          />
+          <Route path="/messages/:userId" element={<Messages user={user} />} />
+          <Route path="/offers/:offerId" element={<OfferDetail />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/orders" element={<Orders />} />
+          <Route path="/orders/:id" element={<OrderDetail />} />
+          <Route path="/seller-orders" element={<SellerOrders />} />
+        </Routes>
+      </div>
+      <ChatBot />
       <Footer />
     </div>
   );
