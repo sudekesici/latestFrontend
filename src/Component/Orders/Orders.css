@@ -1,0 +1,48 @@
+.orders-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 32px 16px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 4px 24px rgba(44, 62, 80, 0.08);
+}
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.order-item {
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 18px;
+  background: #fafbfc;
+}
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.order-status {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.status-pending {
+  color: #e67e22;
+}
+.status-confirmed {
+  color: #27ae60;
+}
+.status-cancelled {
+  color: #e74c3c;
+}
+.order-details div {
+  margin-bottom: 4px;
+}
+.orders-empty {
+  text-align: center;
+  color: #aaa;
+  margin-top: 40px;
+}

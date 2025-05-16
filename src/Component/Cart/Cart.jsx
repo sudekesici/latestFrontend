@@ -8,6 +8,7 @@ const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -71,6 +72,45 @@ const Cart = () => {
       (total, item) => total + item.price * item.quantity,
       0
     );
+  };
+
+  // SİPARİŞ OLUŞTURMA
+  const handleCheckout = async () => {
+    if (cartItems.length === 0) return;
+    const shippingAddress = prompt("Teslimat adresinizi girin:");
+    if (!shippingAddress) return;
+
+    setCheckoutLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      // Her ürün için ayrı sipariş oluşturulacak şekilde backend'e istek atıyoruz
+      for (const item of cartItems) {
+        // Eğer tekliften geldiyse offerId, yoksa null gönder
+        const offerId = item.product.acceptedOfferId || null; // Eğer backend'de böyle bir alan varsa
+        await axios.post(
+          "http://localhost:8080/api/v1/buyer/orders",
+          {
+            offerId: item.acceptedOfferId,
+            productId: item.product.id,
+            shippingAddress: shippingAddress,
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+      }
+      alert("Sipariş(ler) başarıyla oluşturuldu!");
+      await fetchCartItems();
+      // İsterseniz navigate ile siparişlerim sayfasına yönlendirebilirsiniz:
+      navigate("/orders");
+    } catch (err) {
+      alert(
+        err.response?.data?.error || "Sipariş oluşturulurken bir hata oluştu!"
+      );
+    } finally {
+      setCheckoutLoading(false);
+      fetchCartItems();
+    }
   };
 
   if (loading) {
@@ -159,7 +199,15 @@ const Cart = () => {
               <span>Toplam:</span>
               <span>{calculateTotal()} TL</span>
             </div>
-            <button className="cart-checkout-button">Siparişi Tamamla</button>
+            <button
+              className="cart-checkout-button"
+              onClick={handleCheckout}
+              disabled={checkoutLoading}
+            >
+              {checkoutLoading
+                ? "Sipariş Oluşturuluyor..."
+                : "Siparişi Tamamla"}
+            </button>
           </div>
         </>
       )}

@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import MessageInbox from "./Component/MessageInbox/MessageInbox";
 import Cart from "./Component/Cart/Cart";
+import Orders from "./Component/Orders/Orders";
 
 function App() {
   const [categories, setCategories] = useState([]);
@@ -140,6 +141,7 @@ function App() {
         <Route path="/messages/:userId" element={<Messages user={user} />} />
         <Route path="/offers/:offerId" element={<OfferDetail />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/orders" element={<Orders />} />
       </Routes>
       <Footer />
     </div>
