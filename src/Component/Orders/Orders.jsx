@@ -38,7 +38,7 @@ const Orders = () => {
 
   return (
     <div className="orders-container">
-      <h1>Siparişlerim</h1>
+      <h1 className="orders-title">Siparişlerim</h1>
       {orders.length === 0 ? (
         <div className="orders-empty">
           <FaBoxOpen size={48} />
@@ -47,7 +47,12 @@ const Orders = () => {
       ) : (
         <div className="orders-list">
           {orders.map((order) => (
-            <div key={order.id} className="order-item">
+            <div
+              key={order.id}
+              className="order-item"
+              onClick={() => navigate(`/orders/${order.id}`)}
+              style={{ cursor: "pointer" }}
+            >
               <div className="order-header">
                 <span className="order-id">Sipariş No: {order.id}</span>
                 <span
