@@ -112,6 +112,11 @@ const ProductDetail = () => {
   // TEKLİF GÖNDERME
   const handleSendOffer = async (e) => {
     e.preventDefault();
+
+    const token = localStorage.getItem("token");
+    const type = localStorage.getItem("userType");
+    console.log("Token:", token);
+    console.log("Type:", type);
     if (!isLoggedIn) {
       alert("Teklif vermek için giriş yapmalısınız");
       return;
@@ -132,6 +137,7 @@ const ProductDetail = () => {
         },
         {
           headers: { Authorization: `Bearer ${token}` },
+          "Content-Type": "application/json",
         }
       );
       alert("Teklifiniz gönderildi!");

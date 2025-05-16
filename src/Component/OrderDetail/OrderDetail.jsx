@@ -15,7 +15,6 @@ const OrderDetail = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [trackingNumber, setTrackingNumber] = useState("");
   const [userType, setUserType] = useState("");
 
   useEffect(() => {
@@ -42,9 +41,6 @@ const OrderDetail = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setOrder(res.data);
-      if (res.data.trackingNumber) {
-        setTrackingNumber(res.data.trackingNumber);
-      }
     } catch (err) {
       setError("Sipariş detayları alınamadı.");
     } finally {
@@ -66,22 +62,6 @@ const OrderDetail = () => {
       fetchOrder();
     } catch (err) {
       setError("Sipariş durumu güncellenemedi.");
-    }
-  };
-
-  const handleUpdateTracking = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.put(
-        `http://localhost:8080/api/v1/seller/orders/${id}/tracking`,
-        { trackingNumber },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      fetchOrder();
-    } catch (err) {
-      setError("Kargo takip numarası güncellenemedi.");
     }
   };
 
@@ -131,6 +111,11 @@ const OrderDetail = () => {
                 <strong>Kargo Takip No:</strong> {order.trackingNumber}
               </p>
             )}
+            {order.shippingStatus && (
+              <p>
+                <strong>Kargo Durumu:</strong> {order.shippingStatus}
+              </p>
+            )}
           </div>
 
           <div className="order-detail-section">
@@ -155,6 +140,15 @@ const OrderDetail = () => {
                   Siparişi Onayla
                 </button>
               )}
+              {order.status === "CONFIRMED" &&
+                order.shippingStatus === "PREPARING" && (
+                  <button
+                    className="order-detail-ship-btn"
+                    onClick={() => handleUpdateStatus("SHIPPED")}
+                  >
+                    Kargoya Ver
+                  </button>
+                )}
             </div>
           )}
         </div>

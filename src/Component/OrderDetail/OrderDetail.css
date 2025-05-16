@@ -1,6 +1,6 @@
 .order-detail-container {
   max-width: 800px;
-  margin: 100px auto 0 auto;
+  margin: 2rem auto;
   padding: 0 1rem;
 }
 
@@ -35,28 +35,32 @@
 }
 
 .status-pending {
-  background: #fff3cd;
+  background-color: #fff3cd;
   color: #856404;
 }
 
 .status-confirmed {
-  background: #d4edda;
+  background-color: #d4edda;
   color: #155724;
 }
 
 .status-shipped {
-  background: #cce5ff;
+  background-color: #cce5ff;
   color: #004085;
 }
 
+.status-delivered {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
+
 .status-cancelled {
-  background: #f8d7da;
+  background-color: #f8d7da;
   color: #721c24;
 }
 
 .order-detail-content {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 1.5rem;
 }
 
@@ -67,7 +71,7 @@
 }
 
 .order-detail-section h3 {
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 1rem 0;
   color: #333;
   font-size: 1.1rem;
 }
@@ -78,46 +82,53 @@
 }
 
 .order-detail-actions {
+  display: flex;
+  gap: 1rem;
   margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #eee;
 }
 
 .order-detail-confirm-btn,
 .order-detail-ship-btn {
-  background: #28a745;
-  color: white;
-  border: none;
   padding: 0.75rem 1.5rem;
+  border: none;
   border-radius: 4px;
-  cursor: pointer;
   font-weight: 500;
+  cursor: pointer;
   transition: background-color 0.2s;
 }
 
-.order-detail-confirm-btn:hover,
+.order-detail-confirm-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+.order-detail-confirm-btn:hover {
+  background-color: #218838;
+}
+
+.order-detail-ship-btn {
+  background-color: #007bff;
+  color: white;
+}
+
 .order-detail-ship-btn:hover {
-  background: #218838;
+  background-color: #0056b3;
 }
 
-.order-detail-shipping {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.order-detail-shipping input {
-  flex: 1;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
+.order-detail-confirm-btn:disabled,
+.order-detail-ship-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 
 .order-detail-loading,
 .order-detail-error {
   text-align: center;
   padding: 2rem;
+  font-size: 1.1rem;
+}
+
+.order-detail-loading {
   color: #666;
 }
 
