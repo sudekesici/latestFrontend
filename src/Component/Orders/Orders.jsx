@@ -75,6 +75,14 @@ const Orders = () => {
                 <div>
                   <strong>Tarih:</strong> {order.createdAt?.slice(0, 10)}
                 </div>
+                <div>
+                  <strong>Kargo Takip No:</strong>{" "}
+                  {order.trackingNumber ? (
+                    order.trackingNumber
+                  ) : (
+                    <span style={{ color: "#aaa" }}>Henüz yok</span>
+                  )}
+                </div>
               </div>
             </div>
           ))}

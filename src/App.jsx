@@ -19,6 +19,7 @@ import axios from "axios";
 import MessageInbox from "./Component/MessageInbox/MessageInbox";
 import Cart from "./Component/Cart/Cart";
 import Orders from "./Component/Orders/Orders";
+import OrderDetail from "./Component/OrderDetail/OrderDetail";
 
 function App() {
   const [categories, setCategories] = useState([]);
@@ -142,6 +143,7 @@ function App() {
         <Route path="/offers/:offerId" element={<OfferDetail />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/orders" element={<Orders />} />
+        <Route path="/orders/:id" element={<OrderDetail />} />
       </Routes>
       <Footer />
     </div>
