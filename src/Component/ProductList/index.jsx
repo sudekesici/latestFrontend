@@ -160,7 +160,10 @@ function ProductList() {
     }
 
     try {
-      await api.post("/cart/add", { productId, quantity: 1 });
+      await api.post("/cart/add", {
+        productId: productId,
+        quantity: 1,
+      });
       alert("Ürün sepete eklendi!");
     } catch (error) {
       if (error.response?.status === 401) {

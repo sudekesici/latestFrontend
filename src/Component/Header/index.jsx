@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FaEnvelope } from "react-icons/fa";
+import { FaEnvelope, FaShoppingCart } from "react-icons/fa";
 import "./Header.css";
 
 const Header = ({
@@ -10,6 +10,7 @@ const Header = ({
   setUser,
   unreadMessages,
   fetchUnreadMessages,
+  cartItems,
 }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -17,6 +18,7 @@ const Header = ({
   const [showNotifications, setShowNotifications] = useState(false);
   const [messages, setMessages] = useState([]);
   const [showMessages, setShowMessages] = useState(false);
+  const [showCart, setShowCart] = useState(false);
 
   const navigate = useNavigate();
 
@@ -174,7 +176,24 @@ const Header = ({
         </Link>
         <Link to="/about">Hakkımızda</Link>
       </nav>
+
       <div className="main-header-right">
+        {user && user.userType === "BUYER" && (
+          <div className="main-header-cart-section">
+            <button
+              className="main-header-cart-icon"
+              onClick={() => {
+                setShowCart(!showCart);
+                navigate("/cart");
+              }}
+            >
+              <FaShoppingCart />
+              {cartItems > 0 && (
+                <span className="main-header-cart-badge">{cartItems}</span>
+              )}
+            </button>
+          </div>
+        )}
         {user && (
           <div className="main-header-notification-section">
             <button

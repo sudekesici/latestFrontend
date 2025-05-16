@@ -412,3 +412,54 @@
   background: #c3cfe2;
   border-radius: 8px;
 }
+
+/* Sepet bölümü için stiller */
+.main-header-cart-section {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 48px;
+}
+
+.main-header-cart-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  font-size: 1.7rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #2c3e50;
+  transition: color 0.2s;
+  padding: 0;
+}
+
+.main-header-cart-icon:hover {
+  color: #2c5282;
+}
+
+.main-header-cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff4444;
+  color: #fff;
+  border-radius: 50%;
+  padding: 2px 7px;
+  font-size: 0.85em;
+  min-width: 20px;
+  text-align: center;
+  font-weight: bold;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Responsive tasarım için */
+@media (max-width: 900px) {
+  .main-header-cart-icon {
+    font-size: 1.5rem;
+  }
+}

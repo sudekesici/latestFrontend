@@ -17,6 +17,7 @@ import OfferDetail from "./pages/OfferDetail/OfferDetail";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import MessageInbox from "./Component/MessageInbox/MessageInbox";
+import Cart from "./Component/Cart/Cart";
 
 function App() {
   const [categories, setCategories] = useState([]);
@@ -138,6 +139,7 @@ function App() {
         />
         <Route path="/messages/:userId" element={<Messages user={user} />} />
         <Route path="/offers/:offerId" element={<OfferDetail />} />
+        <Route path="/cart" element={<Cart />} />
       </Routes>
       <Footer />
     </div>
