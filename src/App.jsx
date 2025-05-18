@@ -24,6 +24,8 @@ import SellerOrders from "./Component/SellerOrders/SellerOrders";
 import ChatBot from "./ChatBot/ChatBot";
 import EducationalContents from "./Component/EducationalContens/EducationalContens";
 import SuccessStories from "./SuccessStories/SuccessStories";
+import Test from "./Component/Test/Test";
+
 function App() {
   const [categories, setCategories] = useState([]);
   const [user, setUser] = useState(null);
@@ -111,6 +113,7 @@ function App() {
       <div className="main-content">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/test" element={<Test />} />
           <Route path="/login" element={<Login updateUser={updateUser} />} />
           <Route path="/register" element={<Register />} />
           <Route path="/about" element={<About />} />
