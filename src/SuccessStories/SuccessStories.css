@@ -332,3 +332,38 @@
     height: 160px;
   }
 }
+.story-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: #e7a7b7;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.story-author-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ffe5d0;
+  background: #fff7f0;
+  margin-right: 0.2rem;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+
+.comment-author-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #ffe5d0;
+  background: #fff7f0;
+}

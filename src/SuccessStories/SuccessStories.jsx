@@ -112,6 +112,12 @@ const SuccessStories = () => {
     );
   }
 
+  // Profil fotoğrafı için yardımcı fonksiyon
+  const getProfilePic = (author) =>
+    author?.profilePicture
+      ? `http://localhost:8080/profiles/${author.profilePicture}`
+      : "/default-avatar.png";
+
   return (
     <div className="success-stories">
       <div className="stories-header">
@@ -137,7 +143,14 @@ const SuccessStories = () => {
                 {story.content.substring(0, 150)}...
               </p>
               <div className="story-meta">
-                <span className="author">{story.author}</span>
+                <img
+                  className="story-author-avatar"
+                  src={getProfilePic(story.author)}
+                  alt="Profil"
+                />
+                <span className="author">
+                  {story.author?.firstName} {story.author?.lastName}
+                </span>
                 <span className="date">
                   {new Date(story.createdAt).toLocaleDateString("tr-TR")}
                 </span>
@@ -173,7 +186,15 @@ const SuccessStories = () => {
             />
             <h2>{selectedStory.title}</h2>
             <div className="story-meta">
-              <span className="author">{selectedStory.author}</span>
+              <img
+                className="story-author-avatar"
+                src={getProfilePic(selectedStory.author)}
+                alt="Profil"
+              />
+              <span className="author">
+                {selectedStory.author?.firstName}{" "}
+                {selectedStory.author?.lastName}
+              </span>
               <span className="date">
                 {new Date(selectedStory.createdAt).toLocaleDateString("tr-TR")}
               </span>
@@ -198,7 +219,14 @@ const SuccessStories = () => {
                 {comments.map((comment) => (
                   <div key={comment.id} className="comment">
                     <div className="comment-header">
-                      <span className="comment-author">{comment.author}</span>
+                      <img
+                        className="comment-author-avatar"
+                        src={getProfilePic(comment.author)}
+                        alt="Profil"
+                      />
+                      <span className="comment-author">
+                        {comment.author?.firstName} {comment.author?.lastName}
+                      </span>
                       <span className="comment-date">
                         {new Date(comment.createdAt).toLocaleDateString(
                           "tr-TR"
