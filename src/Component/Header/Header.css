@@ -3,8 +3,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 2rem;
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.08);
   height: 80px;
   position: fixed;
   top: 0;
@@ -16,33 +16,42 @@
 .main-header-logo img {
   height: 70px;
   width: auto;
-  border-radius: 6px;
+  border-radius: 10px;
   object-fit: contain;
   transition: transform 0.3s;
+  background: #fff7f0;
+
+  padding: 4px;
+}
+
+.main-header-logo img:hover {
+  transform: scale(1.05) rotate(-2deg);
+  box-shadow: 0 4px 16px rgba(233, 164, 128, 0.13);
 }
 
 .main-header-nav {
   display: flex;
-  gap: 3rem;
+  gap: 2.2rem;
   align-items: center;
   flex: 1;
   justify-content: center;
 }
 
 .main-header-nav a {
-  color: #2c3e50;
+  color: #a86c4b;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 1.08rem;
   padding: 0.6rem 1.4rem;
   border-radius: 10px;
   transition: all 0.2s;
   letter-spacing: 0.01em;
+  background: transparent;
 }
 
 .main-header-nav a:hover {
   color: #fff;
-  background: #2c5282;
+  background: #e9a480;
   transform: translateY(-2px) scale(1.05);
 }
 
@@ -52,14 +61,15 @@
   gap: 1.2rem;
 }
 
+/* Bildirim ve Mesajlar */
 .main-header-notification-section,
 .main-header-message-section {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 48px; /* Eklendi: Eşitlik için */
-  height: 48px; /* Eklendi: Eşitlik için */
+  min-width: 48px;
+  height: 48px;
 }
 .main-header-notification-icon,
 .main-header-message-icon {
@@ -72,14 +82,14 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #2c3e50;
+  color: #a86c4b;
   transition: color 0.2s;
   padding: 0;
 }
 
 .main-header-notification-icon:hover,
 .main-header-message-icon:hover {
-  color: #2c5282;
+  color: #e9a480;
 }
 
 .main-header-notification-badge,
@@ -103,10 +113,10 @@
   position: absolute;
   right: 0;
   top: 2.7rem;
-  background: #fff;
+  background: #fff7f0;
   border: none;
   border-radius: 18px;
-  box-shadow: 0 8px 32px rgba(44, 82, 130, 0.18),
+  box-shadow: 0 8px 32px rgba(233, 164, 128, 0.18),
     0 1.5px 6px rgba(0, 0, 0, 0.07);
   width: 350px;
   z-index: 100;
@@ -135,20 +145,20 @@
 
 .main-header-notification-item.unread,
 .main-header-message-item.unread {
-  background: #f0f8ff;
+  background: #fff7f0;
   font-weight: 600;
 }
 
 .main-header-notification-item:hover,
 .main-header-message-item:hover {
-  background: #f5f7fa;
+  background: #f7c6a3;
 }
 
 .main-header-notification-date,
 .main-header-message-date {
   display: block;
   font-size: 0.89rem;
-  color: #888;
+  color: #a86c4b;
   margin-top: 4px;
   font-weight: 400;
 }
@@ -157,9 +167,9 @@
 .main-header-message-empty {
   padding: 32px 0;
   text-align: center;
-  color: #888;
+  color: #a86c4b;
   font-size: 1.05rem;
-  background: #fff;
+  background: #fff7f0;
 }
 
 .main-header-notification-dropdown h4,
@@ -168,21 +178,21 @@
   padding: 18px 22px 10px 22px;
   font-size: 1.13rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: #e9a480;
   border-bottom: 1px solid #f3f3f3;
-  background: #f8f9fa;
+  background: #fff7f0;
   border-radius: 18px 18px 0 0;
   letter-spacing: 0.01em;
 }
 
 .main-header-message-sender {
   font-weight: bold;
-  color: #2c5282;
+  color: #e9a480;
   margin-bottom: 2px;
 }
 
 .main-header-message-preview {
-  color: #444;
+  color: #a86c4b;
   font-size: 0.98em;
   margin-bottom: 2px;
 }
@@ -190,18 +200,18 @@
 .main-header-message-all-link {
   text-align: center;
   padding: 14px 0 10px 0;
-  color: #2c5282;
+  color: #e9a480;
   cursor: pointer;
   border-top: 1px solid #eee;
   font-weight: 600;
-  background: #f8f9fa;
+  background: #fff7f0;
   border-radius: 0 0 18px 18px;
   transition: background 0.18s, color 0.18s;
 }
 
 .main-header-message-all-link:hover {
-  background: #e6f0fa;
-  color: #1a365d;
+  background: #e9a480;
+  color: #fff;
 }
 
 /* Auth Section */
@@ -226,27 +236,27 @@
   font-size: 1rem;
   transition: all 0.2s;
   white-space: nowrap;
-  border: 2px solid #2c5282;
+  border: 2px solid #e9a480;
 }
 
 .main-header-login-button {
-  color: #2c5282;
+  color: #e9a480;
   background: #fff;
 }
 
 .main-header-login-button:hover {
-  background: #2c5282;
+  background: #e9a480;
   color: #fff;
 }
 
 .main-header-register-button {
-  background: #2c5282;
+  background: #e9a480;
   color: #fff;
 }
 
 .main-header-register-button:hover {
-  background: #1a365d;
-  border-color: #1a365d;
+  background: #a86c4b;
+  border-color: #a86c4b;
 }
 
 /* User Menu */
@@ -267,7 +277,7 @@
 }
 
 .main-header-user-menu-button:hover {
-  background: #f0f8ff;
+  background: #fff7f0;
 }
 
 .main-header-user-avatar {
@@ -275,12 +285,12 @@
   height: 48px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #2c5282;
-  box-shadow: 0 1px 4px rgba(44, 82, 130, 0.08);
+  border: 2px solid #e9a480;
+  box-shadow: 0 1px 4px rgba(233, 164, 128, 0.08);
 }
 
 .main-header-user-menu-button span {
-  color: #2c3e50;
+  color: #a86c4b;
   font-weight: 500;
   font-size: 1.08rem;
 }
@@ -289,10 +299,10 @@
   position: absolute;
   top: calc(100% + 0.5rem);
   right: 0;
-  background: #fff;
+  background: #fff7f0;
   min-width: 210px;
   max-width: 260px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.13);
+  box-shadow: 0 4px 20px rgba(233, 164, 128, 0.13);
   border-radius: 12px;
   padding: 0.5rem 0;
   z-index: 1000;
@@ -306,7 +316,7 @@
   display: block;
   width: 100%;
   padding: 0.85rem 1.2rem;
-  color: #2c3e50;
+  color: #a86c4b;
   text-decoration: none;
   font-size: 1rem;
   text-align: left;
@@ -319,8 +329,8 @@
 
 .main-header-user-dropdown a:hover,
 .main-header-user-dropdown button:hover {
-  background: #f0f8ff;
-  color: #2c5282;
+  background: #e9a480;
+  color: #fff;
 }
 
 .main-header-user-dropdown button {
@@ -344,6 +354,68 @@
   }
 }
 
+/* Sepet bölümü için stiller */
+.main-header-cart-section {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 48px;
+}
+
+.main-header-cart-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  font-size: 1.7rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #a86c4b;
+  transition: color 0.2s;
+  padding: 0;
+}
+
+.main-header-cart-icon:hover {
+  color: #e9a480;
+}
+
+.main-header-cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff4444;
+  color: #fff;
+  border-radius: 50%;
+  padding: 2px 7px;
+  font-size: 0.85em;
+  min-width: 20px;
+  text-align: center;
+  font-weight: bold;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Scrollbar */
+.main-header-notification-dropdown,
+.main-header-message-dropdown {
+  scrollbar-width: thin;
+  scrollbar-color: #e9a480 #fff7f0;
+}
+.main-header-notification-dropdown::-webkit-scrollbar,
+.main-header-message-dropdown::-webkit-scrollbar {
+  width: 7px;
+  background: #fff7f0;
+  border-radius: 8px;
+}
+.main-header-notification-dropdown::-webkit-scrollbar-thumb,
+.main-header-message-dropdown::-webkit-scrollbar-thumb {
+  background: #e9a480;
+  border-radius: 8px;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .main-header {
@@ -355,10 +427,6 @@
   }
   .main-header-nav {
     gap: 1.2rem;
-  }
-  .main-header-user-avatar {
-    width: 38px;
-    height: 38px;
   }
   .main-header-notification-dropdown,
   .main-header-message-dropdown {
@@ -380,7 +448,11 @@
   .main-header-right {
     gap: 0.5rem;
   }
+  .main-header-logo img {
+    height: 40px;
+  }
 }
+
 @media (max-width: 400px) {
   .main-header-user-dropdown {
     min-width: 150px;
@@ -388,78 +460,5 @@
     left: 50%;
     right: auto;
     transform: translateX(-50%);
-  }
-}
-.main-header-user-dropdown a:hover,
-.main-header-user-dropdown button:hover {
-  background: #f0f8ff;
-  color: #2c5282;
-}
-
-.main-header-notification-dropdown,
-.main-header-message-dropdown {
-  scrollbar-width: none;
-  scrollbar-color: #c3cfe2 #fff;
-}
-.main-header-notification-dropdown::-webkit-scrollbar,
-.main-header-message-dropdown::-webkit-scrollbar {
-  width: 7px;
-  background: #f8f9fa;
-  border-radius: 8px;
-}
-.main-header-notification-dropdown::-webkit-scrollbar-thumb,
-.main-header-message-dropdown::-webkit-scrollbar-thumb {
-  background: #c3cfe2;
-  border-radius: 8px;
-}
-
-/* Sepet bölümü için stiller */
-.main-header-cart-section {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 48px;
-  height: 48px;
-}
-
-.main-header-cart-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  font-size: 1.7rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #2c3e50;
-  transition: color 0.2s;
-  padding: 0;
-}
-
-.main-header-cart-icon:hover {
-  color: #2c5282;
-}
-
-.main-header-cart-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: #ff4444;
-  color: #fff;
-  border-radius: 50%;
-  padding: 2px 7px;
-  font-size: 0.85em;
-  min-width: 20px;
-  text-align: center;
-  font-weight: bold;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-}
-
-/* Responsive tasarım için */
-@media (max-width: 900px) {
-  .main-header-cart-icon {
-    font-size: 1.5rem;
   }
 }

@@ -3,26 +3,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, #faf3ed 0%, #fff7f0 100%);
   padding: 20px;
   margin-top: 80px;
 }
 
 .main-register-box {
-  background: #fff;
+  background: #fff7f0;
   padding: 40px;
-  border-radius: 20px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-radius: 22px;
+  box-shadow: 0 10px 32px rgba(233, 164, 128, 0.13);
   width: 100%;
   max-width: 500px;
+  border: 1.5px solid #f7c6a3;
 }
 
 .main-register-box h2 {
   text-align: center;
-  color: #222;
+  color: #e9a480;
   margin-bottom: 30px;
-  font-size: 28px;
+  font-size: 2rem;
   font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .main-register-error-message {
@@ -42,27 +44,30 @@
 .main-register-form-group input[type="text"],
 .main-register-form-group input[type="email"],
 .main-register-form-group input[type="password"] {
+  box-sizing: border-box;
   width: 100%;
-  padding: 15px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  padding: 12px 16px;
+  border: 1.5px solid #e9a480;
+  border-radius: 10px;
   font-size: 16px;
+  background: #faf3ed;
+  color: #a86c4b;
   transition: border-color 0.3s;
 }
 
 .main-register-form-group input:focus {
-  border-color: #4a90e2;
+  border-color: #e9a480;
   outline: none;
 }
 
 .main-register-user-type-select {
   width: 100%;
   padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  border: 1.5px solid #e9a480;
+  border-radius: 10px;
   font-size: 16px;
-  color: #333;
-  background-color: #fff;
+  color: #a86c4b;
+  background-color: #fff7f0;
   cursor: pointer;
   margin-bottom: 0;
   transition: border-color 0.3s;
@@ -70,8 +75,8 @@
 
 .main-register-user-type-select:focus {
   outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 5px rgba(74, 144, 226, 0.15);
+  border-color: #e9a480;
+  box-shadow: 0 0 5px #f7c6a3;
 }
 
 .main-register-terms {
@@ -79,7 +84,7 @@
   align-items: center;
   gap: 10px;
   font-size: 14px;
-  color: #666;
+  color: #a86c4b;
 }
 
 .main-register-terms label {
@@ -93,24 +98,26 @@
   width: 18px;
   height: 18px;
   cursor: pointer;
-  accent-color: #4a90e2;
+  accent-color: #e9a480;
 }
 
 .main-register-button {
   width: 100%;
   padding: 15px;
-  background-color: #4a90e2;
+  background-color: #e9a480;
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: background-color 0.3s;
+  letter-spacing: 0.04em;
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.13);
 }
 
 .main-register-button:hover:not(:disabled) {
-  background-color: #357abd;
+  background-color: #a86c4b;
 }
 
 .main-register-button:disabled {
@@ -126,10 +133,10 @@
 .main-register-divider {
   position: relative;
   margin: 28px 0 18px 0;
-  color: #888;
+  color: #a86c4b;
   font-size: 15px;
   text-align: center;
-  background: #fff;
+  background: #fff7f0;
   display: inline-block;
   padding: 0 16px;
   z-index: 1;
@@ -142,7 +149,7 @@
   top: 50%;
   width: 40%;
   height: 1px;
-  background: #ddd;
+  background: #f7c6a3;
 }
 
 .main-register-divider::before {
@@ -163,7 +170,7 @@
 .main-register-facebook-btn {
   width: 100%;
   padding: 12px;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -173,18 +180,18 @@
   gap: 12px;
   border: none;
   transition: all 0.2s;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 4px rgba(233, 164, 128, 0.04);
 }
 
 .main-register-google-btn {
   background: #fff;
-  color: #222;
-  border: 1px solid #ddd;
+  color: #a86c4b;
+  border: 1.5px solid #f7c6a3;
 }
 
 .main-register-google-btn:hover {
-  background: #f5f5f5;
-  border-color: #bbb;
+  background: #faf3ed;
+  border-color: #e9a480;
 }
 
 .main-register-facebook-btn {
@@ -206,18 +213,19 @@
 .main-register-login-link {
   margin-top: 20px;
   text-align: center;
-  color: #666;
+  color: #a86c4b;
 }
 
 .main-register-login-link a {
-  color: #4a90e2;
+  color: #e9a480;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
   margin-left: 5px;
+  transition: color 0.2s;
 }
 
 .main-register-login-link a:hover {
-  color: #357abd;
+  color: #a86c4b;
 }
 
 @media (max-width: 480px) {

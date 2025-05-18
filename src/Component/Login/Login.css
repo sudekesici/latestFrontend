@@ -3,25 +3,27 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, #faf3ed 0%, #fff7f0 100%);
   padding: 20px;
 }
 
 .main-login-box {
-  background: #fff;
+  background: #fff7f0;
   padding: 40px;
-  border-radius: 20px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-radius: 22px;
+  box-shadow: 0 10px 32px rgba(233, 164, 128, 0.13);
   width: 100%;
-  max-width: 450px;
+  max-width: 420px;
+  border: 1.5px solid #f7c6a3;
 }
 
 .main-login-box h2 {
   text-align: center;
-  color: #222;
+  color: #e9a480;
   margin-bottom: 30px;
-  font-size: 28px;
+  font-size: 2rem;
   font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .main-login-error-message {
@@ -40,23 +42,26 @@
 
 .main-login-form-group input[type="email"],
 .main-login-form-group input[type="password"] {
+  box-sizing: border-box;
   width: 100%;
-  padding: 12px 15px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  padding: 12px 16px;
+  border: 1.5px solid #e9a480;
+  border-radius: 10px;
   font-size: 16px;
+  background: #faf3ed;
+  color: #a86c4b;
   transition: all 0.3s;
 }
 
 .main-login-form-group input::placeholder {
-  color: #999;
+  color: #a86c4b;
   opacity: 0.8;
 }
 
 .main-login-form-group input:focus {
   outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+  border-color: #e9a480;
+  box-shadow: 0 0 0 2px #f7c6a3;
 }
 
 .main-login-remember-forgot {
@@ -71,39 +76,41 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #666;
+  color: #a86c4b;
 }
 
 .main-login-remember-forgot a {
-  color: #4a90e2;
+  color: #e9a480;
   text-decoration: none;
   transition: color 0.3s;
 }
 
 .main-login-remember-forgot a:hover {
-  color: #357abd;
+  color: #a86c4b;
 }
 
 .main-login-remember-forgot input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: #4a90e2;
+  accent-color: #e9a480;
   cursor: pointer;
 }
 
 .main-login-button {
   width: 100%;
   padding: 12px;
-  background: #4a90e2;
+  background: #e9a480;
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
   position: relative;
   overflow: hidden;
+  letter-spacing: 0.04em;
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.13);
 }
 
 .main-login-button:active {
@@ -112,8 +119,8 @@
 
 @media (hover: hover) {
   .main-login-button:hover {
-    background: #357abd;
-    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+    background: #a86c4b;
+    box-shadow: 0 2px 12px rgba(233, 164, 128, 0.18);
   }
 }
 
@@ -125,10 +132,10 @@
 .main-login-divider {
   position: relative;
   margin: 28px 0 18px 0;
-  color: #888;
+  color: #a86c4b;
   font-size: 15px;
   text-align: center;
-  background: #fff;
+  background: #fff7f0;
   display: inline-block;
   padding: 0 16px;
   z-index: 1;
@@ -141,7 +148,7 @@
   top: 50%;
   width: 40%;
   height: 1px;
-  background: #ddd;
+  background: #f7c6a3;
 }
 
 .main-login-divider::before {
@@ -163,7 +170,7 @@
 .main-login-facebook-btn {
   width: 100%;
   padding: 12px;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -173,18 +180,18 @@
   gap: 12px;
   border: none;
   transition: all 0.2s;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 4px rgba(233, 164, 128, 0.04);
 }
 
 .main-login-google-btn {
   background: #fff;
-  color: #222;
-  border: 1px solid #ddd;
+  color: #a86c4b;
+  border: 1.5px solid #f7c6a3;
 }
 
 .main-login-google-btn:hover {
-  background: #f5f5f5;
-  border-color: #bbb;
+  background: #faf3ed;
+  border-color: #e9a480;
 }
 
 .main-login-facebook-btn {
@@ -206,18 +213,19 @@
 .main-login-register-link {
   text-align: center;
   margin-top: 20px;
-  color: #666;
+  color: #a86c4b;
 }
 
 .main-login-register-link a {
-  color: #4a90e2;
+  color: #e9a480;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
   margin-left: 5px;
+  transition: color 0.2s;
 }
 
 .main-login-register-link a:hover {
-  color: #357abd;
+  color: #a86c4b;
 }
 
 @media (max-width: 480px) {

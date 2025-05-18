@@ -72,7 +72,12 @@ const OrderDetail = () => {
 
   return (
     <div className="order-detail-container">
-      <h1>Sipariş Detayı</h1>
+      <h1
+        className="order-detail-title
+      "
+      >
+        Sipariş Detayı
+      </h1>
       <div className="order-detail-card">
         <div className="order-detail-header">
           <span className="order-detail-id">Sipariş No: {order.id}</span>

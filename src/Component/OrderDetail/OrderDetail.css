@@ -1,123 +1,139 @@
 .order-detail-container {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  max-width: 900px;
+  margin: 80px auto 0 auto; /* Header ile çakışmasın diye üstten boşluk */
+  padding: 32px 16px;
+  background: #fff7f0;
+  border-radius: 18px;
+  box-shadow: 0 6px 32px 0 rgba(233, 164, 128, 0.08);
 }
 
 .order-detail-card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.07);
+  padding: 2rem 1.5rem;
+  border: 1.5px solid #ffe5d0;
 }
 
+.order-detail-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #a86c4b;
+  margin-bottom: 28px;
+  text-align: center;
+  font-family: "Montserrat", Arial, sans-serif;
+}
 .order-detail-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1.5px solid #ffe5d0;
 }
 
 .order-detail-id {
   font-size: 1.1rem;
-  color: #666;
+  color: #a86c4b;
+  font-weight: 600;
 }
 
 .order-detail-status {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  gap: 0.7rem;
+  padding: 0.5rem 1.2rem;
   border-radius: 20px;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  background: #fff7f0;
+  border: 1.5px solid #ffe5d0;
 }
 
 .status-pending {
-  background-color: #fff3cd;
-  color: #856404;
+  color: #e7a7b7;
 }
-
 .status-confirmed {
-  background-color: #d4edda;
-  color: #155724;
+  color: #a86c4b;
 }
-
 .status-shipped {
-  background-color: #cce5ff;
-  color: #004085;
+  color: #2e7d5b;
 }
-
 .status-delivered {
-  background-color: #d1e7dd;
-  color: #0f5132;
+  color: #2e7d5b;
 }
-
 .status-cancelled {
-  background-color: #f8d7da;
-  color: #721c24;
+  color: #d32f2f;
 }
 
 .order-detail-content {
   display: grid;
   gap: 1.5rem;
+  margin-top: 1.5rem;
 }
 
 .order-detail-section {
-  background: #f8f9fa;
-  padding: 1rem;
-  border-radius: 6px;
+  background: #fff7f0;
+  padding: 1.2rem 1rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.07);
+  border: 1.5px solid #ffe5d0;
 }
 
 .order-detail-section h3 {
   margin: 0 0 1rem 0;
-  color: #333;
-  font-size: 1.1rem;
+  color: #a86c4b;
+  font-size: 1.13rem;
+  font-weight: 700;
 }
 
 .order-detail-section p {
   margin: 0.5rem 0;
-  color: #666;
+  color: #5a3e36;
+  font-size: 1.05rem;
 }
 
 .order-detail-actions {
   display: flex;
   gap: 1rem;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
 }
 
 .order-detail-confirm-btn,
 .order-detail-ship-btn {
   padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 4px;
-  font-weight: 500;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  font-size: 1rem;
+  transition: background 0.2s;
 }
 
 .order-detail-confirm-btn {
-  background-color: #28a745;
-  color: white;
+  background-color: #e9a480;
+  color: #fff;
 }
 
 .order-detail-confirm-btn:hover {
-  background-color: #218838;
+  background-color: #a86c4b;
 }
 
 .order-detail-ship-btn {
-  background-color: #007bff;
-  color: white;
+  background-color: #aee9d1;
+  color: #2e7d5b;
 }
 
 .order-detail-ship-btn:hover {
-  background-color: #0056b3;
+  background-color: #2e7d5b;
+  color: #fff;
 }
 
 .order-detail-confirm-btn:disabled,
 .order-detail-ship-btn:disabled {
   background-color: #ccc;
+  color: #fff;
   cursor: not-allowed;
 }
 
@@ -129,9 +145,22 @@
 }
 
 .order-detail-loading {
-  color: #666;
+  color: #a86c4b;
 }
 
 .order-detail-error {
-  color: #dc3545;
+  color: #d32f2f;
+}
+
+@media (max-width: 600px) {
+  .order-detail-container {
+    padding: 12px 2px;
+    margin-top: 70px;
+  }
+  .order-detail-card {
+    padding: 1rem 0.5rem;
+  }
+  .order-detail-section {
+    padding: 0.7rem 0.3rem;
+  }
 }

@@ -1,9 +1,9 @@
 .offer-detail-container {
-  max-width: 480px;
-  margin: 48px auto 0 auto;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 2px 16px rgba(44, 62, 80, 0.1);
+  max-width: 720px;
+  margin: 100px auto 20px auto;
+  background: #fff7f0;
+  border-radius: 18px;
+  box-shadow: 0 6px 32px 0 rgba(233, 164, 128, 0.08);
   padding: 36px 32px 32px 32px;
   display: flex;
   flex-direction: column;
@@ -12,48 +12,51 @@
 
 .offer-detail-container h2 {
   font-size: 1.5rem;
-  color: #222;
+  color: #a86c4b;
   margin-bottom: 18px;
   font-weight: 700;
   text-align: center;
+  font-family: "Montserrat", Arial, sans-serif;
 }
 
 .offer-detail-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #f1f1f1;
+  padding: 10px 0;
+  border-bottom: 1.5px solid #ffe5d0;
   font-size: 1.08rem;
 }
 
 .offer-detail-label {
-  color: #888;
-  font-weight: 500;
+  color: #a86c4b;
+  font-weight: 600;
   min-width: 120px;
 }
 
 .offer-detail-status {
-  font-weight: 600;
-  padding: 2px 12px;
-  border-radius: 10px;
+  font-weight: 700;
+  padding: 4px 16px;
+  border-radius: 12px;
   font-size: 1rem;
   margin-left: 8px;
-  background: #eee;
-  color: #444;
+  background: #ffe5d0;
+  color: #a86c4b;
+  letter-spacing: 0.02em;
+  border: 1.5px solid #f7c6a3;
 }
 
 .offer-status-PENDING {
-  background: #fff3cd;
-  color: #b8860b;
+  background: #f7c6a3;
+  color: #a86c4b;
 }
 .offer-status-ACCEPTED {
-  background: #d4edda;
-  color: #388e3c;
+  background: #aee9d1;
+  color: #2e7d5b;
 }
 .offer-status-REJECTED {
-  background: #f8d7da;
-  color: #b71c1c;
+  background: #f7bfa0;
+  color: #d32f2f;
 }
 .offer-status-CANCELLED {
   background: #e0e0e0;
@@ -68,43 +71,78 @@
 }
 
 .offer-detail-accept {
-  background: #4caf50;
+  background: #e9a480;
   color: #fff;
   border: none;
-  border-radius: 6px;
-  padding: 8px 22px;
+  border-radius: 8px;
+  padding: 10px 28px;
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: background 0.2s;
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.07);
 }
+
 .offer-detail-accept:hover {
-  background: #388e3c;
+  background: #a86c4b;
 }
 
 .offer-detail-reject {
-  background: #e44d26;
-  color: #fff;
+  background: #f7bfa0;
+  color: #a86c4b;
   border: none;
-  border-radius: 6px;
-  padding: 8px 22px;
+  border-radius: 8px;
+  padding: 10px 28px;
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: background 0.2s;
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.07);
 }
+
 .offer-detail-reject:hover {
-  background: #b71c1c;
+  background: #d32f2f;
+  color: #fff;
 }
 
 .offer-detail-loading,
 .offer-detail-error {
-  max-width: 480px;
-  margin: 48px auto 0 auto;
-  background: #fff5f5;
-  color: #e44d26;
-  border-radius: 10px;
+  max-width: 540px;
+  margin: 80px auto 0 auto;
+  background: #fff7f0;
+  color: #d32f2f;
+  border-radius: 12px;
   padding: 32px;
   text-align: center;
   font-size: 1.1rem;
+  border: 1.5px solid #ffe5d0;
+}
+
+@media (max-width: 700px) {
+  .offer-detail-container,
+  .offer-detail-loading,
+  .offer-detail-error {
+    max-width: 98vw;
+    padding: 16px 4px;
+    margin-top: 60px;
+  }
+}
+
+.offer-detail-product {
+  background: #fff7f0;
+  color: #a86c4b;
+  border: 1.5px solid #e9a480;
+  border-radius: 8px;
+  padding: 10px 28px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.07);
+}
+
+.offer-detail-product:hover {
+  background: #e9a480;
+  color: #fff;
+  border-color: #a86c4b;
 }

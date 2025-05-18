@@ -8,6 +8,8 @@ const AddProduct = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestedPrice, setSuggestedPrice] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -21,23 +23,17 @@ const AddProduct = () => {
   useEffect(() => {
     checkAuthorization();
     fetchCategories();
+    // eslint-disable-next-line
   }, []);
 
   const checkAuthorization = () => {
     const token = localStorage.getItem("token");
     const userType = localStorage.getItem("userType");
-
-    console.log("Authorization check:", {
-      hasToken: !!token,
-      userType: userType,
-    });
-
     if (!token) {
       setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
       setTimeout(() => navigate("/login"), 2000);
       return false;
     }
-
     if (userType !== "SELLER") {
       setError(
         "Bu sayfaya erişim yetkiniz yok. Sadece satıcılar ürün ekleyebilir."
@@ -45,7 +41,6 @@ const AddProduct = () => {
       setTimeout(() => navigate("/"), 2000);
       return false;
     }
-
     return true;
   };
 
@@ -56,7 +51,6 @@ const AddProduct = () => {
       );
       setCategories(response.data);
     } catch (error) {
-      console.error("Kategoriler yüklenirken hata:", error);
       setError("Kategoriler yüklenirken bir hata oluştu.");
     }
   };
@@ -77,6 +71,44 @@ const AddProduct = () => {
     }));
   };
 
+  const handleSuggestPrice = async () => {
+    if (!formData.title || !formData.description || !formData.categoryId) {
+      setError(
+        "Fiyat önerisi için ürün adı, açıklaması ve kategorisi gereklidir."
+      );
+      return;
+    }
+
+    setSuggesting(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        "http://localhost:8080/api/v1/seller/suggest-price",
+        {
+          title: formData.title,
+          description: formData.description,
+          categoryId: formData.categoryId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data && response.data.suggestedPrice) {
+        setSuggestedPrice(response.data.suggestedPrice);
+      }
+    } catch (error) {
+      setError("Fiyat önerisi alınırken bir hata oluştu.");
+    } finally {
+      setSuggesting(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -87,16 +119,12 @@ const AddProduct = () => {
       setLoading(false);
       return;
     }
-
     if (!checkAuthorization()) {
       setLoading(false);
       return;
     }
-
     try {
       const token = localStorage.getItem("token");
-      console.log("Token:", token);
-
       const productData = {
         title: formData.title.trim(),
         description: formData.description.trim(),
@@ -110,9 +138,6 @@ const AddProduct = () => {
         ingredients: "",
         preparationTime: "",
       };
-
-      console.log("Sending product data:", productData);
-
       const response = await axios.post(
         "http://localhost:8080/api/v1/seller/products",
         productData,
@@ -123,20 +148,12 @@ const AddProduct = () => {
           },
         }
       );
-
-      console.log("Product creation response:", response.data);
-
-      // Eğer resimler seçildiyse yükle
       if (response.data && formData.images.length > 0) {
         const productId = response.data.id;
         const imageFormData = new FormData();
-
         formData.images.forEach((image) => {
           imageFormData.append("images", image);
         });
-
-        console.log("Uploading images for product:", productId);
-
         try {
           await axios.post(
             `http://localhost:8080/api/v1/seller/products/${productId}/images`,
@@ -148,27 +165,15 @@ const AddProduct = () => {
               },
             }
           );
-        } catch (imageError) {
-          console.error("Image upload error:", imageError);
-          // Resim yükleme hatası olsa bile ürün eklendiği için devam et
-        }
+        } catch {}
       }
-
       navigate("/my-products");
     } catch (error) {
-      console.error("Error details:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        headers: error.config?.headers,
-      });
-
       if (error.response?.status === 403) {
         setError(
           "Bu işlem için yetkiniz bulunmuyor. Lütfen satıcı hesabı ile giriş yapın."
         );
-        localStorage.clear(); // Token geçersiz olabilir
-
+        localStorage.clear();
         setTimeout(() => navigate("/login"), 2000);
       } else if (error.response?.status === 401) {
         setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
@@ -182,20 +187,35 @@ const AddProduct = () => {
       setLoading(false);
     }
   };
+  const handleCancel = () => {
+    console.log("Ürün ekleme iptal edildi.");
+    setSuggestedPrice(null);
+    setSuggesting(false);
+    setFormData({
+      title: "",
+      description: "",
+      price: "",
+      stock: "",
+      categoryId: "",
+      shippingDetails: "",
+      images: [],
+    });
+    navigate("/my-products");
+  };
 
   if (error) {
     return (
       <div className="add-product-container">
-        <div className="error-message">{error}</div>
+        <div className="add-product-error-message">{error}</div>
       </div>
     );
   }
 
   return (
     <div className="add-product-container">
-      <h2>Yeni Ürün Ekle</h2>
+      <h2 className="add-product-title">Yeni Ürün Ekle</h2>
       <form onSubmit={handleSubmit} className="add-product-form">
-        <div className="form-group">
+        <div className="add-product-form-group">
           <label htmlFor="title">Ürün Adı</label>
           <input
             type="text"
@@ -206,8 +226,7 @@ const AddProduct = () => {
             required
           />
         </div>
-
-        <div className="form-group">
+        <div className="add-product-form-group">
           <label htmlFor="description">
             Ürün Açıklaması ({formData.description.length} karakter - minimum 10
             karakter)
@@ -222,34 +241,63 @@ const AddProduct = () => {
             className={
               formData.description.length > 0 &&
               formData.description.length < 10
-                ? "invalid"
+                ? "add-product-invalid"
                 : ""
             }
           />
           {formData.description.length > 0 &&
             formData.description.length < 10 && (
-              <small className="error-text">
+              <small className="add-product-error-text">
                 Ürün açıklaması en az 10 karakter olmalıdır.{" "}
                 {10 - formData.description.length} karakter daha yazmalısınız.
               </small>
             )}
         </div>
-
-        <div className="form-group">
+        {/* Fiyat ve fiyat önerisi */}
+        <div className="add-product-form-group">
           <label htmlFor="price">Fiyat (TL)</label>
-          <input
-            type="number"
-            id="price"
-            name="price"
-            value={formData.price}
-            onChange={handleChange}
-            required
-            min="0"
-            step="0.01"
-          />
+          <div className="price-input-container">
+            <input
+              type="number"
+              id="price"
+              name="price"
+              value={formData.price}
+              onChange={handleChange}
+              required
+              min="0"
+              step="0.01"
+            />
+            <button
+              type="button"
+              className="suggest-price-button"
+              onClick={handleSuggestPrice}
+              disabled={
+                suggesting ||
+                !formData.title ||
+                !formData.description ||
+                !formData.categoryId
+              }
+            >
+              <i className="fas fa-magic"></i>
+              {suggesting ? "Öneriliyor..." : "Fiyat Öner"}
+            </button>
+          </div>
+          {suggestedPrice && (
+            <div className="suggested-price">
+              <strong>Yapay Zeka Fiyat Önerisi:</strong> {suggestedPrice} TL
+              <button
+                type="button"
+                className="apply-price-button"
+                onClick={() =>
+                  setFormData({ ...formData, price: suggestedPrice })
+                }
+              >
+                <i className="fas fa-check"></i> Uygula
+              </button>
+            </div>
+          )}
         </div>
-
-        <div className="form-group">
+        <div className="add-product-form-group">
           <label htmlFor="stock">Stok</label>
           <input
             type="number"
@@ -261,8 +309,7 @@ const AddProduct = () => {
             min="0"
           />
         </div>
-
-        <div className="form-group">
+        <div className="add-product-form-group">
           <label htmlFor="categoryId">Kategori</label>
           <select
             id="categoryId"
@@ -279,8 +326,7 @@ const AddProduct = () => {
             ))}
           </select>
         </div>
-
-        <div className="form-group">
+        <div className="add-product-form-group">
           <label htmlFor="shippingDetails">Kargo Detayları</label>
           <textarea
             id="shippingDetails"
@@ -291,8 +337,7 @@ const AddProduct = () => {
             rows="2"
           />
         </div>
-
-        <div className="form-group">
+        <div className="add-product-form-group">
           <label htmlFor="images">Ürün Görselleri (Opsiyonel)</label>
           <input
             type="file"
@@ -303,16 +348,19 @@ const AddProduct = () => {
             accept="image/*"
           />
         </div>
-
-        <div className="form-actions">
+        <div className="add-product-form-actions">
           <button
             type="button"
-            onClick={() => navigate("/my-products")}
-            className="cancel-button"
+            onClick={handleCancel}
+            className="add-product-cancel-button"
           >
             İptal
           </button>
-          <button type="submit" className="submit-button" disabled={loading}>
+          <button
+            type="submit"
+            className="add-product-submit-button"
+            disabled={loading}
+          >
             {loading ? "Ekleniyor..." : "Ürün Ekle"}
           </button>
         </div>

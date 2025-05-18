@@ -389,7 +389,7 @@ function ProductList() {
                   <p className="main-product-list-category">
                     {product.category?.name}
                   </p>
-                  <p className="main-product-list-price">{product.price} TL</p>
+                  {/* <p className="main-product-list-price">{product.price} TL</p> */}
                   <div className="main-product-list-seller-info">
                     <img
                       src={

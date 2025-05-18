@@ -111,17 +111,24 @@ const OfferDetail = () => {
           {getStatusText(offer.status)}
         </span>
       </div>
-      {/* Sadece satıcıya onay/reddet butonları göster */}
-      {userType === "SELLER" && offer.status === "PENDING" && (
-        <div className="offer-detail-actions">
-          <button className="offer-detail-accept" onClick={handleAccept}>
-            Onayla
-          </button>
-          <button className="offer-detail-reject" onClick={handleReject}>
-            Reddet
-          </button>
-        </div>
-      )}
+      <div className="offer-detail-actions">
+        <button
+          className="offer-detail-product"
+          onClick={() => navigate(`/products/${offer.product.id}`)}
+        >
+          Ürüne Git
+        </button>
+        {userType === "SELLER" && offer.status === "PENDING" && (
+          <>
+            <button className="offer-detail-accept" onClick={handleAccept}>
+              Onayla
+            </button>
+            <button className="offer-detail-reject" onClick={handleReject}>
+              Reddet
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 };

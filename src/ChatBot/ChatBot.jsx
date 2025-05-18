@@ -36,7 +36,6 @@ const ChatBot = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Input'a otomatik focus
   useEffect(() => {
     if (isOpen) {
       inputRef.current?.focus();
@@ -64,6 +63,40 @@ const ChatBot = () => {
     return () => clearInterval(interval);
   }, [userJson]);
 
+  const fetchSuggestions = async (type) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return null;
+
+      let endpoint = "";
+      if (type === "stories") {
+        endpoint = "http://localhost:8080/api/v1/success-stories?page=0&size=3";
+      } else if (type === "content") {
+        endpoint =
+          "http://localhost:8080/api/v1/educational-contents?page=0&size=3";
+      }
+
+      console.log(`Chatbot: Fetching ${type} from ${endpoint}`);
+      const response = await axios.get(endpoint, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log(`Chatbot: ${type} response:`, response.data);
+      return response.data.content || response.data;
+    } catch (error) {
+      console.error(`Chatbot: Error fetching ${type}:`, error);
+      if (error.response) {
+        console.error(`Chatbot: ${type} error status:`, error.response.status);
+        console.error(`Chatbot: ${type} error data:`, error.response.data);
+      }
+      return null;
+    }
+  };
+
   const handleSendMessage = async () => {
     if (inputMessage.trim() === "") return;
 
@@ -83,7 +116,6 @@ const ChatBot = () => {
       return;
     }
 
-    // Kullanıcı mesajını ekle
     const userMessage = {
       text: inputMessage,
       sender: "user",
@@ -110,7 +142,69 @@ const ChatBot = () => {
 
       if (response.data) {
         console.log("Chatbot: API'den gelen yanıt:", response.data);
+
+        // Ana yanıtı ekle
         setMessages((prev) => [...prev, response.data]);
+
+        // Başarı hikayeleri ve eğitim içeriklerini kontrol et
+        const lowerInput = inputMessage.toLowerCase();
+        if (lowerInput.includes("başarı") || lowerInput.includes("hikaye")) {
+          console.log("Chatbot: Başarı hikayeleri aranıyor...");
+          const stories = await fetchSuggestions("stories");
+          if (stories && stories.length > 0) {
+            console.log("Chatbot: Başarı hikayeleri bulundu:", stories);
+            setMessages((prev) => [
+              ...prev,
+              {
+                text: "İşte size önerilen başarı hikayeleri:",
+                sender: "bot",
+                timestamp: new Date(),
+                messageType: "suggestions",
+                suggestions: {
+                  type: "stories",
+                  items: stories,
+                },
+              },
+            ]);
+          } else {
+            console.log("Chatbot: Başarı hikayeleri bulunamadı");
+          }
+        } else if (
+          lowerInput.includes("eğitim") ||
+          lowerInput.includes("içerik") ||
+          lowerInput.includes("kurs")
+        ) {
+          console.log("Chatbot: Eğitim içerikleri aranıyor...");
+          const contents = await fetchSuggestions("content");
+          if (contents && contents.length > 0) {
+            console.log("Chatbot: Eğitim içerikleri bulundu:", contents);
+            setMessages((prev) => [
+              ...prev,
+              {
+                text: "İşte size önerilen eğitim içerikleri:",
+                sender: "bot",
+                timestamp: new Date(),
+                messageType: "suggestions",
+                suggestions: {
+                  type: "content",
+                  items: contents,
+                },
+              },
+            ]);
+          } else {
+            console.log("Chatbot: Eğitim içerikleri bulunamadı");
+            setMessages((prev) => [
+              ...prev,
+              {
+                text: "Üzgünüm, şu anda eğitim içeriklerine ulaşılamıyor. Lütfen daha sonra tekrar deneyin.",
+                sender: "bot",
+                timestamp: new Date(),
+                messageType: "text",
+              },
+            ]);
+          }
+        }
+
         setShowFeedback(true);
         setCurrentFeedback({
           userMessage: userMessage.text,
@@ -180,6 +274,39 @@ const ChatBot = () => {
     }
   };
 
+  const renderSuggestions = (suggestions) => {
+    if (!suggestions) return null;
+
+    const { type, items } = suggestions;
+    return (
+      <div className={`suggestions ${type}-suggestions`}>
+        {items.map((item) => (
+          <div key={item.id} className="suggestion-card">
+            <img
+              src={item.imageUrl || "https://via.placeholder.com/150"}
+              alt={item.title}
+            />
+            <h4>{item.title}</h4>
+            <p>
+              {type === "stories"
+                ? item.content?.substring(0, 100)
+                : item.description?.substring(0, 100)}
+              ...
+            </p>
+            <a
+              href={`/${
+                type === "stories" ? "success-stories" : "educational-content"
+              }/${item.id}`}
+              className="read-more"
+            >
+              {type === "stories" ? "Devamını Oku" : "Eğitime Git"}
+            </a>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="chatbot-container">
       {!isOpen && (
@@ -221,6 +348,8 @@ const ChatBot = () => {
                 }`}
               >
                 {message.text}
+                {message.messageType === "suggestions" &&
+                  renderSuggestions(message.suggestions)}
               </div>
             ))}
             {isTyping && (

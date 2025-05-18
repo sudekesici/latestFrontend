@@ -1,71 +1,103 @@
 .orders-container {
-  max-width: 800px;
-  margin: 40px auto 0 auto;
+  max-width: 900px;
+  margin: 60px auto 0 auto;
   padding: 32px 16px;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 4px 24px rgba(44, 62, 80, 0.08);
+  background: #fff7f0;
+  border-radius: 18px;
+  box-shadow: 0 6px 32px 0 rgba(233, 164, 128, 0.08);
 }
+
 .orders-title {
   font-size: 2rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: #a86c4b;
   margin-bottom: 28px;
   text-align: center;
+  font-family: "Montserrat", Arial, sans-serif;
 }
+
 .orders-list {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 1.2rem;
 }
+
 .order-item {
-  border: 1px solid #eee;
-  border-radius: 10px;
-  padding: 18px;
-  background: #fafbfc;
-  transition: box-shadow 0.18s, transform 0.18s;
+  border: 1.5px solid #ffe5d0;
+  border-radius: 14px;
+  padding: 18px 20px;
+  background: #fff;
+  transition: box-shadow 0.18s, transform 0.18s, border-left 0.18s;
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.07);
+  cursor: pointer;
 }
+
 .order-item:hover {
-  box-shadow: 0 6px 24px rgba(44, 62, 80, 0.13);
+  box-shadow: 0 8px 24px rgba(233, 164, 128, 0.13);
   transform: translateY(-2px) scale(1.01);
-  border-left: 5px solid #218838;
+  border-left: 5px solid #e9a480;
 }
+
 .order-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
 }
-.order-status {
+
+.order-id {
+  color: #a86c4b;
   font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.order-status {
+  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  font-size: 1.05rem;
 }
+
 .status-pending {
-  color: #e67e22;
+  color: #e7a7b7;
 }
 .status-confirmed {
-  color: #27ae60;
+  color: #a86c4b;
 }
 .status-cancelled {
-  color: #e74c3c;
+  color: #e44d26;
 }
+
 .order-details div {
   margin-bottom: 4px;
+  color: #5a3e36;
+  font-size: 1.01rem;
 }
+
 .orders-empty {
   text-align: center;
-  color: #aaa;
+  color: #a86c4b;
   margin-top: 40px;
+  background: #fff7f0;
+  border-radius: 14px;
+  padding: 2.5rem 1rem;
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.07);
 }
+
+.orders-empty svg {
+  color: #e9a480;
+  margin-bottom: 1rem;
+}
+
 .orders-loading,
 .orders-error {
   text-align: center;
-  color: #888;
+  color: #a86c4b;
   margin-top: 40px;
   font-size: 1.1rem;
 }
+
 @media (max-width: 600px) {
   .orders-container {
     padding: 12px 2px;

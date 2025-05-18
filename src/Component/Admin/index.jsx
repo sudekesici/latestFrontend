@@ -289,14 +289,14 @@ const Admin = () => {
     setCurrentPage(0);
   };
 
-  if (loading) return <div className="loading">Yükleniyor...</div>;
-  if (error) return <div className="error-message">{error}</div>;
+  if (loading) return <div className="admin-loading">Yükleniyor...</div>;
+  if (error) return <div className="admin-error-message">{error}</div>;
 
   return (
     <div className="admin-container">
       <div className="admin-header">
         <h2>Admin Paneli</h2>
-        <div className="panel-selector">
+        <div className="admin-panel-selector">
           <select
             value={activePanel}
             onChange={(e) => setActivePanel(e.target.value)}
@@ -308,7 +308,7 @@ const Admin = () => {
       </div>
 
       <div className="admin-controls">
-        <div className="search-box">
+        <div className="admin-search-box">
           <input
             type="text"
             placeholder={
@@ -318,7 +318,7 @@ const Admin = () => {
             onChange={handleSearch}
           />
         </div>
-        <div className="filter-box">
+        <div className="admin-filter-box">
           <select
             value={activePanel === "users" ? userType : productCategoryFilter}
             onChange={handleFilterChange}
@@ -344,7 +344,7 @@ const Admin = () => {
       </div>
 
       {activePanel === "users" ? (
-        <div className="users-table">
+        <div className="admin-users-table">
           <table>
             <thead>
               <tr>
@@ -369,8 +369,10 @@ const Admin = () => {
                   </td>
                   <td>
                     <span
-                      className={`status-badge ${
-                        user.active ? "status-available" : "status-inactive"
+                      className={`admin-status-badge ${
+                        user.active
+                          ? "admin-status-available"
+                          : "admin-status-inactive"
                       }`}
                     >
                       {user.active ? "Aktif" : "Pasif"}
@@ -379,7 +381,9 @@ const Admin = () => {
                   <td>
                     <button
                       className={
-                        user.active ? "deactivate-btn" : "activate-btn"
+                        user.active
+                          ? "admin-deactivate-btn"
+                          : "admin-activate-btn"
                       }
                       onClick={() =>
                         handleUserStatusChange(
@@ -397,7 +401,7 @@ const Admin = () => {
           </table>
         </div>
       ) : (
-        <div className="products-table">
+        <div className="admin-products-table">
           <table>
             <thead>
               <tr>
@@ -422,16 +426,16 @@ const Admin = () => {
                   <td>{product.stock}</td>
                   <td>
                     <span
-                      className={`status-badge ${
+                      className={`admin-status-badge ${
                         product.status === "AVAILABLE"
-                          ? "status-available"
+                          ? "admin-status-available"
                           : product.status === "INACTIVE"
-                          ? "status-inactive"
+                          ? "admin-status-inactive"
                           : product.status === "PENDING_REVIEW"
-                          ? "status-pending"
+                          ? "admin-status-pending"
                           : product.status === "REJECTED"
-                          ? "status-rejected"
-                          : "status-removed"
+                          ? "admin-status-rejected"
+                          : "admin-status-removed"
                       }`}
                     >
                       {product.status === "AVAILABLE" && "Aktif"}
@@ -443,13 +447,13 @@ const Admin = () => {
                   </td>
                   <td>
                     <button
-                      className="edit-btn"
+                      className="admin-edit-btn"
                       onClick={() => handleEditClick(product)}
                     >
                       Düzenle
                     </button>
                     <button
-                      className="delete-btn"
+                      className="admin-delete-btn"
                       onClick={() => handleProductDelete(product.id)}
                     >
                       Sil
@@ -463,10 +467,10 @@ const Admin = () => {
       )}
 
       {showEditForm && (
-        <div className="edit-form-overlay">
-          <div className="edit-form">
+        <div className="admin-edit-form-overlay">
+          <div className="admin-edit-form">
             <h3>Ürün Düzenle</h3>
-            <div className="form-group">
+            <div className="admin-form-group">
               <label>Başlık:</label>
               <input
                 type="text"
@@ -476,7 +480,7 @@ const Admin = () => {
                 }
               />
             </div>
-            <div className="form-group">
+            <div className="admin-form-group">
               <label>Fiyat:</label>
               <input
                 type="number"
@@ -486,7 +490,7 @@ const Admin = () => {
                 }
               />
             </div>
-            <div className="form-group">
+            <div className="admin-form-group">
               <label>Stok:</label>
               <input
                 type="number"
@@ -496,7 +500,7 @@ const Admin = () => {
                 }
               />
             </div>
-            <div className="form-group">
+            <div className="admin-form-group">
               <label>Kategori:</label>
               <select
                 value={editFormData.categoryId}
@@ -514,7 +518,7 @@ const Admin = () => {
                 ))}
               </select>
             </div>
-            <div className="form-group">
+            <div className="admin-form-group">
               <label>Durum:</label>
               <select
                 value={editFormData.status}
@@ -529,7 +533,7 @@ const Admin = () => {
                 <option value="REMOVED">Silindi</option>
               </select>
             </div>
-            <div className="form-buttons">
+            <div className="admin-form-buttons">
               <button onClick={handleProductUpdate}>Kaydet</button>
               <button onClick={() => setShowEditForm(false)}>İptal</button>
             </div>
@@ -538,10 +542,10 @@ const Admin = () => {
       )}
 
       {successMessage && (
-        <div className="success-message">{successMessage}</div>
+        <div className="admin-success-message">{successMessage}</div>
       )}
 
-      <div className="pagination">
+      <div className="admin-pagination">
         <button
           onClick={() => setCurrentPage(currentPage - 1)}
           disabled={currentPage === 0}

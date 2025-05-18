@@ -1,85 +1,105 @@
 .about-section {
   padding: 80px 20px;
-  background-color: #fff;
+  background-color: #faf3ed;
   text-align: center;
 }
 
 .about-section h1 {
-  font-size: 48px;
+  font-size: 2.7rem;
   font-weight: 700;
-  margin-bottom: 20px;
-  color: #333;
+  margin-bottom: 18px;
+  color: #e9a480;
+  font-family: "Montserrat", "Quicksand", Arial, sans-serif;
+  letter-spacing: 0.04em;
 }
 
 .about-section h2 {
-  font-size: 36px;
+  font-size: 2rem;
   font-weight: 600;
-  margin-bottom: 40px;
-  color: #444;
+  margin-bottom: 36px;
+  color: #a86c4b;
+  font-family: "Montserrat", "Quicksand", Arial, sans-serif;
 }
 
 .about-content {
-  max-width: 1000px;
-  margin: 0 auto 60px;
+  max-width: 900px;
+  margin: 0 auto 50px;
   text-align: left;
+  background: #fff7f0;
+  border-radius: 16px;
+  padding: 32px 28px;
+  box-shadow: 0 4px 24px rgba(233, 164, 128, 0.08);
 }
 
 .about-content p {
-  font-size: 18px;
+  font-size: 1.1rem;
   line-height: 1.8;
-  margin-bottom: 20px;
-  color: #666;
+  margin-bottom: 18px;
+  color: #a86c4b;
+  font-weight: 500;
 }
 
 .stats-section {
   display: flex;
   justify-content: center;
-  gap: 100px;
-  margin-top: 60px;
+  gap: 80px;
+  margin-top: 40px;
 }
 
 .stat-item {
   display: flex;
   flex-direction: column;
   align-items: center;
+  background: #fff7f0;
+  border-radius: 14px;
+  padding: 28px 36px;
+  box-shadow: 0 2px 12px rgba(233, 164, 128, 0.1);
 }
 
 .stat-number {
-  font-size: 48px;
+  font-size: 2.5rem;
   font-weight: 700;
-  color: #007bff;
-  margin-bottom: 10px;
+  color: #e9a480;
+  margin-bottom: 8px;
+  font-family: "Montserrat", "Quicksand", Arial, sans-serif;
 }
 
 .stat-label {
-  font-size: 20px;
-  font-weight: 500;
-  color: #444;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #a86c4b;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+  .about-content {
+    padding: 18px 8px;
+  }
+  .stats-section {
+    gap: 30px;
+  }
+}
+
+@media (max-width: 600px) {
   .about-section h1 {
-    font-size: 36px;
+    font-size: 1.5rem;
   }
-
   .about-section h2 {
-    font-size: 28px;
+    font-size: 1.1rem;
   }
-
-  .about-content p {
-    font-size: 16px;
+  .about-content {
+    padding: 10px 2px;
   }
-
   .stats-section {
     flex-direction: column;
-    gap: 40px;
+    gap: 18px;
   }
-
+  .stat-item {
+    padding: 18px 10px;
+  }
   .stat-number {
-    font-size: 36px;
+    font-size: 1.5rem;
   }
-
   .stat-label {
-    font-size: 18px;
+    font-size: 1rem;
   }
 }

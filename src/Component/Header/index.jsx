@@ -160,7 +160,7 @@ const Header = ({
     <header className="main-header">
       <div className="main-header-logo">
         <Link to="/">
-          <img src="src/assets/img/senior_logo.jpg" alt="site_logo" />
+          <img src="src\assets\img\emekSepeti.jpeg" alt="site_logo" />
         </Link>
       </div>
       <nav className="main-header-nav">
@@ -175,6 +175,24 @@ const Header = ({
           Ürünler
         </Link>
         <Link to="/about">Hakkımızda</Link>
+        <Link
+          to="/success-stories"
+          onClick={(e) => {
+            e.preventDefault();
+            handleNavigation("/success-stories");
+          }}
+        >
+          Başarı Hikayeleri
+        </Link>
+        <Link
+          to="/educational-content"
+          onClick={(e) => {
+            e.preventDefault();
+            handleNavigation("/educational-contents");
+          }}
+        >
+          Eğitim İçerikleri
+        </Link>
       </nav>
 
       <div className="main-header-right">

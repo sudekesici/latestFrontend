@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./SellerDashboard.css";
-import { head } from "framer-motion/client";
-import api from "./utils/axios"; // api.js'i import et
+import api from "./utils/axios";
 
 const SellerDashboard = () => {
   const navigate = useNavigate();
@@ -54,19 +53,30 @@ const SellerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Sekme yönetimi ve orders
+  const [activeTab, setActiveTab] = useState("products");
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState(null);
+
   useEffect(() => {
     checkAuthAndFetchData();
   }, []);
 
+  useEffect(() => {
+    if (activeTab === "orders") {
+      fetchOrders();
+    }
+    // eslint-disable-next-line
+  }, [activeTab]);
+
   const checkAuthAndFetchData = async () => {
     const token = localStorage.getItem("token");
     const userType = localStorage.getItem("userType");
-
     if (!token || userType !== "SELLER") {
       setError("Bu sayfaya erişim yetkiniz yok");
       return;
     }
-
     try {
       await Promise.all([fetchProfile(), fetchProducts(), fetchCategories()]);
     } catch (error) {
@@ -82,7 +92,6 @@ const SellerDashboard = () => {
     try {
       const meResponse = await api.get("/api/v1/auth/me");
       const response = await api.get(`/api/v1/users/${meResponse.data.id}`);
-
       setUser(response.data);
       setFormData({
         firstName: response.data.firstName,
@@ -96,6 +105,47 @@ const SellerDashboard = () => {
       console.error("Profil bilgileri yüklenirken hata:", error);
       setError("Profil bilgileri yüklenirken bir hata oluştu.");
       setLoading(false);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const response = await api.get(`/api/v1/seller/products?sortBy=newest`);
+      setProducts(response.data);
+    } catch (err) {
+      setError("Ürünler yüklenirken hata oluştu: " + err.message);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await api.get("/api/v1/categories");
+      setCategories(response.data);
+    } catch (error) {
+      console.error("Categories fetch error:", error);
+    }
+  };
+
+  const fetchOrders = async () => {
+    setOrdersLoading(true);
+    setOrdersError(null);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+      const res = await axios.get(
+        "http://localhost:8080/api/v1/seller/orders",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setOrders(res.data);
+    } catch (err) {
+      setOrdersError("Satışlar alınamadı.");
+    } finally {
+      setOrdersLoading(false);
     }
   };
 
@@ -132,32 +182,6 @@ const SellerDashboard = () => {
       shippingDetails: "",
       images: [],
     });
-  };
-
-  const [sortOrder, setSortOrder] = useState("newest");
-
-  const fetchProducts = async () => {
-    try {
-      const response = await api.get(
-        `/api/v1/seller/products?sortBy=${sortOrder}`
-      );
-      setProducts(response.data);
-    } catch (err) {
-      setError("Ürünler yüklenirken hata oluştu: " + err.message);
-    }
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, [sortOrder]);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await api.get("/api/v1/categories");
-      setCategories(response.data);
-    } catch (error) {
-      console.error("Categories fetch error:", error);
-    }
   };
 
   const handleDelete = async (productId) => {
@@ -197,24 +221,15 @@ const SellerDashboard = () => {
         stock: parseInt(editFormData.stock),
         categoryId: parseInt(editFormData.categoryId),
       };
-
-      // İstek öncesi log
-      console.log("Güncelleme isteği gönderiliyor:", {
-        productId: selectedProduct.id,
-        data: updateData,
-      });
-
       const response = await api.put(
         `/api/v1/seller/products/${selectedProduct.id}`,
         updateData
       );
       if (editImages.length > 0) {
         try {
-          // 1. Eski fotoğrafları sil
           await api.delete(
             `/api/v1/seller/products/${selectedProduct.id}/images`
           );
-          // 2. Yeni fotoğrafları yükle
           const imageFormData = new FormData();
           editImages.forEach((img) => imageFormData.append("images", img));
           await api.post(
@@ -231,17 +246,11 @@ const SellerDashboard = () => {
           );
         }
       }
-
-      // Başarılı yanıt log
-      console.log("Güncelleme başarılı:", response.data);
-
-      // Ürün listesini güncelle
       setProducts(
         products.map((product) =>
           product.id === selectedProduct.id ? response.data : product
         )
       );
-
       await fetchProducts();
       setShowEditModal(false);
       setSelectedProduct(null);
@@ -250,35 +259,21 @@ const SellerDashboard = () => {
       setSuggesting(false);
       alert("Ürün başarıyla güncellendi");
     } catch (error) {
-      console.error("Güncelleme hatası:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-      });
-
-      // Hata mesajını göster
-      if (error.response?.status === 403) {
-        alert("Bu ürünü güncelleme yetkiniz yok");
-      } else {
-        alert(
-          "Ürün güncellenirken bir hata oluştu: " +
-            (error.response?.data?.message || error.message)
-        );
-      }
+      alert(
+        "Ürün güncellenirken bir hata oluştu: " +
+          (error.response?.data?.message || error.message)
+      );
     }
   };
 
   const handleNewProductSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-
     if (newProduct.description.length < 10) {
       setError("Ürün açıklaması en az 10 karakter olmalıdır!");
       return;
     }
-
     try {
-      // Önce ürün verilerini gönder
       const productData = {
         title: newProduct.title.trim(),
         description: newProduct.description.trim(),
@@ -292,24 +287,15 @@ const SellerDashboard = () => {
         preparationTime: "",
         shippingDetails: newProduct.shippingDetails,
       };
-
       const response = await api.post("/api/v1/seller/products", productData);
-
-      // Eğer resimler varsa, ayrı bir istekle resimleri yükle
       if (response.data && newProduct.images.length > 0) {
         const productId = response.data.id;
         const imageFormData = new FormData();
-
         newProduct.images.forEach((image) => {
           imageFormData.append("images", image);
         });
-
         try {
-          console.log("Resim yükleme isteği gönderiliyor...");
-          console.log("Ürün ID:", productId);
-          console.log("Resim sayısı:", newProduct.images.length);
-
-          const uploadResponse = await api.post(
+          await api.post(
             `/api/v1/seller/products/${productId}/images`,
             imageFormData,
             {
@@ -318,21 +304,13 @@ const SellerDashboard = () => {
               },
             }
           );
-
-          console.log("Resim yükleme başarılı:", uploadResponse.data);
         } catch (imageError) {
-          console.error("Hata detayları:", {
-            message: imageError.message,
-            response: imageError.response?.data,
-            status: imageError.response?.status,
-          });
           setError(
             "Ürün oluşturuldu fakat resimler yüklenirken bir hata oluştu: " +
               (imageError.response?.data || imageError.message)
           );
         }
       }
-
       await fetchProducts();
       setShowAddProductModal(false);
       setNewProduct({
@@ -345,34 +323,11 @@ const SellerDashboard = () => {
         images: [],
       });
     } catch (error) {
-      console.error("Hata detayları:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-      });
-
       setError(
         error.response?.data?.message || "Ürün eklenirken bir hata oluştu."
       );
     }
   };
-
-  if (loading) return <div className="loading">Yükleniyor...</div>;
-  if (error) return <div className="error-message">{error}</div>;
-  if (!user) return <div className="error-message">Kullanıcı bulunamadı.</div>;
-
-  const filteredProducts = products.filter((product) => {
-    const productTitle = (product.title || product.name || "").toString();
-    const matchesSearch = productTitle
-      .toLowerCase()
-      .includes((productSearchTerm || "").toLowerCase());
-    const matchesCategory =
-      productCategoryFilter === "ALL" ||
-      (product.category &&
-        product.category.id &&
-        product.category.id.toString() === productCategoryFilter);
-    return matchesSearch && matchesCategory;
-  });
 
   // Yapay zeka fiyat önerisi
   const handleSuggestPrice = async () => {
@@ -391,6 +346,24 @@ const SellerDashboard = () => {
     }
     setSuggesting(false);
   };
+
+  if (loading) return <div className="loading">Yükleniyor...</div>;
+  if (error) return <div className="error-message">{error}</div>;
+  if (!user) return <div className="error-message">Kullanıcı bulunamadı.</div>;
+
+  const filteredProducts = products.filter((product) => {
+    const productTitle = (product.title || product.name || "").toString();
+    const matchesSearch = productTitle
+      .toLowerCase()
+      .includes((productSearchTerm || "").toLowerCase());
+    const matchesCategory =
+      productCategoryFilter === "ALL" ||
+      (product.category &&
+        product.category.id &&
+        product.category.id.toString() === productCategoryFilter);
+    const hasStock = Number(product.stock) > 0;
+    return matchesSearch && matchesCategory && hasStock;
+  });
 
   return (
     <div className="seller-dashboard">
@@ -444,102 +417,172 @@ const SellerDashboard = () => {
 
       {/* Sekmeler */}
       <div className="profile-tabs">
-        <div className="tab active">Ürünlerim ({products.length})</div>
-        <div className="tab">Satışlarım (0)</div>
-        <div className="tab">Favoriler (0)</div>
-      </div>
-
-      {/* Filtreler */}
-      <div className="filters-container">
-        <div className="search-filters">
-          <input
-            type="text"
-            placeholder="Ürünlerimde ara..."
-            value={productSearchTerm}
-            onChange={(e) => setProductSearchTerm(e.target.value)}
-            className="search-input"
-          />
-          <select
-            value={productCategoryFilter}
-            onChange={(e) => setProductCategoryFilter(e.target.value)}
-            className="category-select"
-          >
-            <option value="ALL">Tüm Kategoriler</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
+        <div
+          className={`tab ${activeTab === "products" ? "active" : ""}`}
+          onClick={() => setActiveTab("products")}
+        >
+          Ürünlerim ({products.length})
         </div>
-        <div className="sort-filter">
-          <select
-            className="sort-select"
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value)}
-          >
-            <option value="newest">En Yeniler</option>
-            <option value="price-asc">Fiyat (Artan)</option>
-            <option value="price-desc">Fiyat (Azalan)</option>
-          </select>
+        <div
+          className={`tab ${activeTab === "orders" ? "active" : ""}`}
+          onClick={() => setActiveTab("orders")}
+        >
+          Satışlarım
+        </div>
+        <div
+          className={`tab ${activeTab === "favorites" ? "active" : ""}`}
+          onClick={() => setActiveTab("favorites")}
+        >
+          Favoriler (0)
         </div>
       </div>
 
-      {/* Ürün Grid */}
-      <div className="products-grid">
-        {filteredProducts.map((product) => (
-          <div key={product.id} className="product-card">
-            <div className="product-image-container">
-              <img
-                src={
-                  product.images && product.images[0]
-                    ? `http://localhost:8080${product.images[0]}`
-                    : "/placeholder.png"
-                }
-                alt={product.title || product.name || "Ürün"}
-                className="product-image"
+      {/* Filtreler ve Ürünler */}
+      {activeTab === "products" && (
+        <>
+          <div className="filters-container">
+            <div className="search-filters">
+              <input
+                type="text"
+                placeholder="Ürünlerimde ara..."
+                value={productSearchTerm}
+                onChange={(e) => setProductSearchTerm(e.target.value)}
+                className="search-input"
               />
-              <div className="product-status-badge">
-                {product.status === "AVAILABLE" && "Satışta"}
-                {product.status === "SOLD" && "Satıldı"}
-                {product.status === "PENDING_REVIEW" && "İncelemede"}
-              </div>
-            </div>
-            <div className="product-info">
-              <h3 className="product-title">{product.title || product.name}</h3>
-              <div className="product-category">
-                {product.category && product.category.name
-                  ? product.category.name
-                  : ""}
-              </div>
-              <div className="product-price">{product.price} TL</div>
-              <div className="product-stock">Stok: {product.stock}</div>
-            </div>
-            <div className="product-actions">
-              <button
-                className="edit-button"
-                onClick={() => handleEdit(product)}
+              <select
+                value={productCategoryFilter}
+                onChange={(e) => setProductCategoryFilter(e.target.value)}
+                className="category-select"
               >
-                Düzenle
-              </button>
-              <button
-                className="delete-button"
-                onClick={() => handleDelete(product.id)}
-              >
-                Sil
-              </button>
+                <option value="ALL">Tüm Kategoriler</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
-        ))}
-      </div>
+          <div className="products-grid">
+            {filteredProducts.map((product) => (
+              <div
+                key={product.id}
+                className="product-card"
+                onClick={() => navigate(`/products/${product.id}`)}
+                style={{ cursor: "pointer" }}
+              >
+                <div className="product-image-container">
+                  <img
+                    src={
+                      product.images && product.images[0]
+                        ? `http://localhost:8080${product.images[0]}`
+                        : "/placeholder.png"
+                    }
+                    alt={product.title || product.name || "Ürün"}
+                    className="product-image"
+                  />
+                  <div className="product-status-badge">
+                    {product.status === "AVAILABLE" && "Satışta"}
+                    {product.status === "SOLD" && "Satıldı"}
+                    {product.status === "PENDING_REVIEW" && "İncelemede"}
+                  </div>
+                </div>
+                <div className="product-info">
+                  <h3 className="product-title">
+                    {product.title || product.name}
+                  </h3>
+                  <div className="product-category">
+                    {product.category && product.category.name
+                      ? product.category.name
+                      : ""}
+                  </div>
+                  <div className="product-price">{product.price} TL</div>
+                  <div className="product-stock">Stok: {product.stock}</div>
+                </div>
+                <div className="product-actions">
+                  <button
+                    className="edit-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(product);
+                    }}
+                  >
+                    Düzenle
+                  </button>
+                  <button
+                    className="delete-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(product.id);
+                    }}
+                  >
+                    Sil
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button
+            className="add-product-button"
+            onClick={() => setShowAddProductModal(true)}
+          >
+            <i className="fas fa-plus"></i> Yeni Ürün Ekle
+          </button>
+        </>
+      )}
 
-      {/* Sabit Ürün Ekleme Butonu */}
-      <button
-        className="add-product-button"
-        onClick={() => setShowAddProductModal(true)}
-      >
-        <i className="fas fa-plus"></i> Yeni Ürün Ekle
-      </button>
+      {/* Satışlarım Sekmesi */}
+      {activeTab === "orders" && (
+        <div className="seller-orders-container">
+          <h1 className="seller-orders-title">Satışlarım</h1>
+          {ordersLoading ? (
+            <div>Yükleniyor...</div>
+          ) : ordersError ? (
+            <div>{ordersError}</div>
+          ) : orders.length === 0 ? (
+            <div className="seller-orders-empty">Henüz bir satışınız yok.</div>
+          ) : (
+            <div className="seller-orders-list">
+              {orders.map((order) => (
+                <div
+                  key={order.id}
+                  className="seller-order-item"
+                  onClick={() => navigate(`/orders/${order.id}`)}
+                >
+                  <div className="seller-order-row">
+                    <span className="seller-order-label">Sipariş No:</span>
+                    <span className="seller-order-value">{order.id}</span>
+                  </div>
+                  <div className="seller-order-row">
+                    <span className="seller-order-label">Ürün:</span>
+                    <span className="seller-order-value">
+                      {order.product?.title}
+                    </span>
+                  </div>
+                  <div className="seller-order-row">
+                    <span className="seller-order-label">Fiyat:</span>
+                    <span className="seller-order-value">
+                      {order.finalPrice} TL
+                    </span>
+                  </div>
+                  <div className="seller-order-row">
+                    <span className="seller-order-label">Durum:</span>
+                    <span className={`seller-order-status ${order.status}`}>
+                      {order.status}
+                    </span>
+                  </div>
+                  <div className="seller-order-row">
+                    <span className="seller-order-label">Kargo Takip No:</span>
+                    <span className="seller-order-value">
+                      {order.trackingNumber || "Henüz yok"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Profil Düzenleme Modal */}
       {showProfileEditModal && (
@@ -621,8 +664,8 @@ const SellerDashboard = () => {
 
       {/* Ürün Ekleme Modal */}
       {showAddProductModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
+        <div className="modal-overlay" onClick={handleCloseAddProductModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2>Yeni Ürün Ekle</h2>
             <form onSubmit={handleNewProductSubmit}>
               <div className="form-group">
@@ -639,7 +682,6 @@ const SellerDashboard = () => {
                   required
                 />
               </div>
-
               <div className="form-group">
                 <label>
                   Ürün Açıklaması ({newProduct.description.length} karakter -
@@ -671,7 +713,6 @@ const SellerDashboard = () => {
                     </small>
                   )}
               </div>
-
               <div className="form-group">
                 <label>Fiyat (TL)</label>
                 <input
@@ -687,36 +728,38 @@ const SellerDashboard = () => {
                   min="0"
                   step="0.01"
                 />
-                <button
-                  type="button"
-                  onClick={handleSuggestPrice}
-                  disabled={
-                    suggesting ||
-                    !newProduct.title ||
-                    !newProduct.description ||
-                    !newProduct.categoryId
-                  }
-                  style={{ marginLeft: 8 }}
-                >
-                  {suggesting ? "Öneriliyor..." : "Fiyat Öner"}
-                </button>
+                <div className="price-suggestion-container">
+                  <button
+                    type="button"
+                    className="suggest-price-button"
+                    onClick={handleSuggestPrice}
+                    disabled={
+                      suggesting ||
+                      !newProduct.title ||
+                      !newProduct.description ||
+                      !newProduct.categoryId
+                    }
+                  >
+                    <i className="fas fa-magic"></i>
+                    {suggesting ? "Öneriliyor..." : "Fiyat Öner"}
+                  </button>
+                </div>
                 {suggestedPrice && (
                   <div className="suggested-price">
                     <strong>Yapay Zeka Fiyat Önerisi:</strong> {suggestedPrice}{" "}
                     TL
                     <button
                       type="button"
+                      className="apply-price-button"
                       onClick={() =>
                         setNewProduct({ ...newProduct, price: suggestedPrice })
                       }
-                      style={{ marginLeft: 8 }}
                     >
-                      Uygula
+                      <i className="fas fa-check"></i> Uygula
                     </button>
                   </div>
                 )}
               </div>
-
               <div className="form-group">
                 <label>Stok</label>
                 <input
@@ -732,7 +775,6 @@ const SellerDashboard = () => {
                   min="1"
                 />
               </div>
-
               <div className="form-group">
                 <label>Kategori</label>
                 <select
@@ -753,7 +795,6 @@ const SellerDashboard = () => {
                   ))}
                 </select>
               </div>
-
               <div className="form-group">
                 <label>Kargo Detayları</label>
                 <textarea
@@ -768,7 +809,6 @@ const SellerDashboard = () => {
                   placeholder="Kargo bilgilerini giriniz"
                 />
               </div>
-
               <div className="form-group">
                 <label>Ürün Görselleri</label>
                 <input
@@ -803,9 +843,7 @@ const SellerDashboard = () => {
                     ))}
                 </div>
               </div>
-
               {error && <div className="error-message">{error}</div>}
-
               <div className="modal-actions">
                 <button type="submit" className="save-button">
                   Ekle
@@ -813,210 +851,7 @@ const SellerDashboard = () => {
                 <button
                   type="button"
                   className="cancel-button"
-                  onClick={() => {
-                    setShowAddProductModal(false);
-                    setError(null);
-                    setNewProduct({
-                      title: "",
-                      description: "",
-                      price: "",
-                      stock: "",
-                      categoryId: "",
-                      shippingDetails: "",
-                      images: [],
-                    });
-                  }}
-                >
-                  İptal
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Ürün Düzenleme Modal */}
-      {showEditModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Ürün Düzenle</h3>
-              <button
-                className="close-button"
-                onClick={() => {
-                  setShowEditModal(false);
-                  setSelectedProduct(null);
-                }}
-              >
-                ×
-              </button>
-            </div>
-            <form onSubmit={handleEditSubmit} className="edit-form">
-              <div className="form-group">
-                <label>Ürün Adı:</label>
-                <input
-                  type="text"
-                  value={editFormData.title}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      title: e.target.value,
-                    })
-                  }
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Açıklama:</label>
-                <textarea
-                  value={editFormData.description}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      description: e.target.value,
-                    })
-                  }
-                  required
-                  rows="4"
-                />
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Fiyat (TL):</label>
-                  <input
-                    type="number"
-                    value={editFormData.price}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        price: e.target.value,
-                      })
-                    }
-                    required
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Stok:</label>
-                  <input
-                    type="number"
-                    value={editFormData.stock}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        stock: e.target.value,
-                      })
-                    }
-                    required
-                    min="0"
-                  />
-                </div>
-              </div>
-              <div className="form-group">
-                <label>Durum:</label>
-                <select
-                  value={editFormData.status}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      status: e.target.value,
-                    })
-                  }
-                  required
-                >
-                  <option value="AVAILABLE">Aktif</option>
-                  <option value="INACTIVE">Pasif</option>
-                  <option value="PENDING_REVIEW">Onay Bekliyor</option>
-                  <option value="REJECTED">Reddedildi</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Kategori:</label>
-                <select
-                  value={editFormData.categoryId}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      categoryId: e.target.value,
-                    })
-                  }
-                  required
-                >
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Kargo Detayları:</label>
-                <textarea
-                  value={editFormData.shippingDetails}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      shippingDetails: e.target.value,
-                    })
-                  }
-                  rows="2"
-                />
-              </div>
-              <div className="form-group">
-                <label>Ürün Görselleri</label>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/gif"
-                  multiple
-                  onChange={(e) => setEditImages(Array.from(e.target.files))}
-                />
-                <small className="help-text">
-                  Desteklenen formatlar: JPG, JPEG, PNG, GIF. Maksimum dosya
-                  boyutu: 5MB
-                </small>
-                {/* Eski görsellerin önizlemesi */}
-                <div className="image-preview">
-                  {editImages.length > 0
-                    ? editImages.map((file, idx) => (
-                        <img
-                          key={idx}
-                          src={URL.createObjectURL(file)}
-                          alt={`Yeni Görsel ${idx + 1}`}
-                          style={{
-                            maxWidth: 80,
-                            maxHeight: 80,
-                            objectFit: "cover",
-                            marginRight: 8,
-                          }}
-                        />
-                      ))
-                    : selectedProduct?.images?.map((img, idx) => (
-                        <img
-                          key={idx}
-                          src={`http://localhost:8080${img}`}
-                          alt="Ürün"
-                          style={{
-                            maxWidth: 80,
-                            maxHeight: 80,
-                            objectFit: "cover",
-                            marginRight: 8,
-                          }}
-                        />
-                      ))}
-                </div>
-              </div>
-              <div className="form-actions">
-                <button type="submit" className="save-button">
-                  Kaydet
-                </button>
-                <button
-                  type="button"
-                  className="cancel-button"
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setSelectedProduct(null);
-                  }}
+                  onClick={handleCloseAddProductModal}
                 >
                   İptal
                 </button>
