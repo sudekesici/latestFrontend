@@ -83,11 +83,22 @@
 
 .story-meta {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
+  gap: 0.7rem;
   color: #e7a7b7;
   font-size: 0.95rem;
   font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.story-author-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ffe5d0;
+  background: #fff7f0;
+  margin-right: 0.2rem;
 }
 
 .loading {
@@ -166,13 +177,15 @@
 .story-detail {
   background: #fff7f0;
   border-radius: 18px;
-  padding: 2rem 2rem 1rem 2rem;
+  padding: 2rem;
   position: relative;
   box-shadow: 0 8px 32px rgba(233, 164, 128, 0.18);
   border: 2px solid #f9d6c1;
-  max-width: 600px;
-  width: 95vw;
-  margin: 2rem 0;
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  margin: 2rem auto;
   z-index: 10;
   animation: fadeIn 0.3s;
 }
@@ -189,9 +202,10 @@
 }
 
 .story-detail .close-button {
-  position: absolute;
-  top: 1.2rem;
-  right: 1.2rem;
+  position: sticky;
+  top: 1rem;
+  right: 1rem;
+  float: right;
   background: #f7bfa0;
   color: #a86c4b;
   border: none;
@@ -205,10 +219,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 11;
+  margin-bottom: 1rem;
 }
 
 .story-detail .close-button:hover {
   background: #e9a480;
+}
+
+.story-detail h2 {
+  clear: both;
+  margin-top: 1rem;
+  color: #a86c4b;
+  font-family: "Montserrat", Arial, sans-serif;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
 }
 
 .story-detail-image {
@@ -223,8 +248,10 @@
 .story-content-full {
   color: #5a3e36;
   line-height: 1.8;
-  margin: 2rem 0;
+  margin: 1.5rem 0;
   font-size: 1.08rem;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .comments-section {
@@ -290,70 +317,6 @@
 
 .comment-header {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.3rem;
-}
-
-.comment-author {
-  font-weight: bold;
-  color: #a86c4b;
-}
-
-.comment-date {
-  color: #e7a7b7;
-  font-size: 0.95rem;
-}
-
-.comment-content {
-  color: #5a3e36;
-  line-height: 1.6;
-}
-
-/* Responsive for mobile */
-@media (max-width: 700px) {
-  .success-stories {
-    padding: 1rem 0.2rem;
-  }
-  .story-card {
-    border-radius: 14px;
-    max-width: 98vw;
-  }
-  .story-image {
-    height: 120px;
-  }
-  .story-content {
-    padding: 1rem 0.8rem 0.8rem 0.8rem;
-  }
-  .story-detail {
-    padding: 1rem 0.5rem 0.5rem 0.5rem;
-    max-width: 98vw;
-  }
-  .story-detail-image {
-    height: 160px;
-  }
-}
-.story-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  color: #e7a7b7;
-  font-size: 0.95rem;
-  font-weight: 500;
-  margin-top: 0.5rem;
-}
-
-.story-author-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #ffe5d0;
-  background: #fff7f0;
-  margin-right: 0.2rem;
-}
-
-.comment-header {
-  display: flex;
   align-items: center;
   gap: 0.6rem;
   margin-bottom: 0.3rem;
@@ -366,4 +329,86 @@
   object-fit: cover;
   border: 1.5px solid #ffe5d0;
   background: #fff7f0;
+}
+
+.comment-author {
+  font-weight: bold;
+  color: #a86c4b;
+}
+
+.comment-date {
+  color: #e7a7b7;
+  font-size: 0.95rem;
+  margin-left: auto;
+}
+
+.comment-content {
+  color: #5a3e36;
+  line-height: 1.6;
+}
+
+/* Scrollbar stilleri */
+.story-detail::-webkit-scrollbar {
+  width: 8px;
+}
+
+.story-detail::-webkit-scrollbar-track {
+  background: #fff7f0;
+  border-radius: 4px;
+}
+
+.story-detail::-webkit-scrollbar-thumb {
+  background: #f7bfa0;
+  border-radius: 4px;
+}
+
+.story-detail::-webkit-scrollbar-thumb:hover {
+  background: #e9a480;
+}
+
+/* Responsive for mobile */
+@media (max-width: 700px) {
+  .success-stories {
+    padding: 1rem 0.2rem;
+  }
+
+  .story-card {
+    border-radius: 14px;
+    max-width: 98vw;
+  }
+
+  .story-image {
+    height: 120px;
+  }
+
+  .story-content {
+    padding: 1rem 0.8rem 0.8rem 0.8rem;
+  }
+
+  .story-detail {
+    width: 95%;
+    padding: 1.5rem;
+    margin: 1rem auto;
+  }
+
+  .story-detail h2 {
+    font-size: 1.5rem;
+  }
+
+  .story-detail-image {
+    height: 160px;
+  }
+
+  .story-content-full {
+    font-size: 1rem;
+  }
+
+  .comment-header {
+    flex-wrap: wrap;
+  }
+
+  .comment-date {
+    margin-left: 0;
+    width: 100%;
+  }
 }
