@@ -59,6 +59,78 @@ const SellerDashboard = () => {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState(null);
 
+  // handleEditSubmit fonksiyonunu en başa taşıyalım
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const updateData = {
+        ...editFormData,
+        price: parseFloat(editFormData.price),
+        stock: parseInt(editFormData.stock),
+        categoryId: parseInt(editFormData.categoryId),
+      };
+      const response = await api.put(
+        `/api/v1/seller/products/${selectedProduct.id}`,
+        updateData
+      );
+      if (editImages.length > 0) {
+        try {
+          await api.delete(
+            `/api/v1/seller/products/${selectedProduct.id}/images`
+          );
+          const imageFormData = new FormData();
+          editImages.forEach((img) => imageFormData.append("images", img));
+          await api.post(
+            `/api/v1/seller/products/${selectedProduct.id}/images`,
+            imageFormData,
+            {
+              headers: { "Content-Type": "multipart/form-data" },
+            }
+          );
+        } catch (imageError) {
+          alert(
+            "Ürün güncellendi fakat görseller yüklenirken hata oluştu: " +
+              (imageError.response?.data || imageError.message)
+          );
+        }
+      }
+      setProducts(
+        products.map((product) =>
+          product.id === selectedProduct.id ? response.data : product
+        )
+      );
+      await fetchProducts();
+      setShowEditModal(false);
+      setSelectedProduct(null);
+      setEditImages([]);
+      setSuggestedPrice(null);
+      setSuggesting(false);
+      alert("Ürün başarıyla güncellendi");
+    } catch (error) {
+      alert(
+        "Ürün güncellenirken bir hata oluştu: " +
+          (error.response?.data?.message || error.message)
+      );
+    }
+  };
+
+  // handleEdit fonksiyonunu da handleEditSubmit'ten sonra tanımlayalım
+  const handleEdit = (product) => {
+    setSelectedProduct(product);
+    setEditFormData({
+      title: product.title,
+      description: product.description,
+      price: product.price,
+      stock: product.stock,
+      status: product.status || "AVAILABLE",
+      categoryId: product.category?.id || "",
+      type: product.type || "FOOD",
+      shippingDetails: product.shippingDetails || "",
+    });
+    setEditImages([]);
+    setShowEditModal(true);
+  };
+
   useEffect(() => {
     checkAuthAndFetchData();
   }, []);
@@ -132,7 +204,6 @@ const SellerDashboard = () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        // navigate("/login");
         return;
       }
       const res = await axios.get(
@@ -193,76 +264,6 @@ const SellerDashboard = () => {
       } catch (error) {
         alert("Ürün silinirken bir hata oluştu");
       }
-    }
-  };
-
-  const handleEdit = (product) => {
-    setSelectedProduct(product);
-    setEditFormData({
-      title: product.title,
-      description: product.description,
-      price: product.price,
-      stock: product.stock,
-      status: product.status,
-      categoryId:
-        product.category && product.category.id ? product.category.id : "",
-      type: product.type || "FOOD",
-      shippingDetails: product.shippingDetails || "",
-    });
-    setShowEditModal(true);
-  };
-
-  const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const updateData = {
-        ...editFormData,
-        price: parseFloat(editFormData.price),
-        stock: parseInt(editFormData.stock),
-        categoryId: parseInt(editFormData.categoryId),
-      };
-      const response = await api.put(
-        `/api/v1/seller/products/${selectedProduct.id}`,
-        updateData
-      );
-      if (editImages.length > 0) {
-        try {
-          await api.delete(
-            `/api/v1/seller/products/${selectedProduct.id}/images`
-          );
-          const imageFormData = new FormData();
-          editImages.forEach((img) => imageFormData.append("images", img));
-          await api.post(
-            `/api/v1/seller/products/${selectedProduct.id}/images`,
-            imageFormData,
-            {
-              headers: { "Content-Type": "multipart/form-data" },
-            }
-          );
-        } catch (imageError) {
-          alert(
-            "Ürün güncellendi fakat görseller yüklenirken hata oluştu: " +
-              (imageError.response?.data || imageError.message)
-          );
-        }
-      }
-      setProducts(
-        products.map((product) =>
-          product.id === selectedProduct.id ? response.data : product
-        )
-      );
-      await fetchProducts();
-      setShowEditModal(false);
-      setSelectedProduct(null);
-      setEditImages([]);
-      setSuggestedPrice(null);
-      setSuggesting(false);
-      alert("Ürün başarıyla güncellendi");
-    } catch (error) {
-      alert(
-        "Ürün güncellenirken bir hata oluştu: " +
-          (error.response?.data?.message || error.message)
-      );
     }
   };
 
@@ -652,7 +653,7 @@ const SellerDashboard = () => {
                 <button
                   type="button"
                   className="cancel-button"
-                  onClick={handleCloseAddProductModal}
+                  onClick={() => setShowProfileEditModal(false)}
                 >
                   İptal
                 </button>
@@ -852,6 +853,190 @@ const SellerDashboard = () => {
                   type="button"
                   className="cancel-button"
                   onClick={handleCloseAddProductModal}
+                >
+                  İptal
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Ürün Düzenleme Modal */}
+      {showEditModal && selectedProduct && (
+        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Ürünü Düzenle</h3>
+              <button
+                className="close-button"
+                onClick={() => setShowEditModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleEditSubmit}>
+              <div className="form-group">
+                <label>Ürün Adı</label>
+                <input
+                  type="text"
+                  value={editFormData.title}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      title: e.target.value,
+                    })
+                  }
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Ürün Açıklaması</label>
+                <textarea
+                  value={editFormData.description}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      description: e.target.value,
+                    })
+                  }
+                  required
+                  minLength={10}
+                />
+              </div>
+              <div className="form-group">
+                <label>Fiyat (TL)</label>
+                <input
+                  type="number"
+                  value={editFormData.price}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      price: e.target.value,
+                    })
+                  }
+                  required
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              <div className="form-group">
+                <label>Stok</label>
+                <input
+                  type="number"
+                  value={editFormData.stock}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      stock: e.target.value,
+                    })
+                  }
+                  required
+                  min="0"
+                />
+              </div>
+              <div className="form-group">
+                <label>Kategori</label>
+                <select
+                  value={editFormData.categoryId}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      categoryId: e.target.value,
+                    })
+                  }
+                  required
+                >
+                  <option value="">Kategori Seçin</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Durum</label>
+                <select
+                  value={editFormData.status}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      status: e.target.value,
+                    })
+                  }
+                  required
+                >
+                  <option value="AVAILABLE">Satışta</option>
+                  <option value="SOLD">Satıldı</option>
+                  <option value="PENDING_REVIEW">İncelemede</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Kargo Detayları</label>
+                <textarea
+                  value={editFormData.shippingDetails}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      shippingDetails: e.target.value,
+                    })
+                  }
+                  rows="2"
+                  placeholder="Kargo bilgilerini giriniz"
+                />
+              </div>
+              <div className="form-group">
+                <label>Ürün Görselleri</label>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif"
+                  multiple
+                  onChange={(e) => setEditImages(Array.from(e.target.files))}
+                />
+                <small className="help-text">
+                  Desteklenen formatlar: JPG, JPEG, PNG, GIF. Maksimum dosya
+                  boyutu: 5MB
+                </small>
+                <div className="image-preview">
+                  {selectedProduct.images &&
+                    selectedProduct.images.map((image, idx) => (
+                      <img
+                        key={idx}
+                        src={`http://localhost:8080${image}`}
+                        alt={`Mevcut Görsel ${idx + 1}`}
+                        style={{
+                          maxWidth: 80,
+                          maxHeight: 80,
+                          objectFit: "cover",
+                          marginRight: 8,
+                        }}
+                      />
+                    ))}
+                  {editImages.length > 0 &&
+                    editImages.map((file, idx) => (
+                      <img
+                        key={`new-${idx}`}
+                        src={URL.createObjectURL(file)}
+                        alt={`Yeni Görsel ${idx + 1}`}
+                        style={{
+                          maxWidth: 80,
+                          maxHeight: 80,
+                          objectFit: "cover",
+                          marginRight: 8,
+                        }}
+                      />
+                    ))}
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button type="submit" className="save-button">
+                  Kaydet
+                </button>
+                <button
+                  type="button"
+                  className="cancel-button"
+                  onClick={() => setShowEditModal(false)}
                 >
                   İptal
                 </button>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FaEnvelope, FaShoppingCart } from "react-icons/fa";
+import { FaEnvelope, FaShoppingCart, FaBell } from "react-icons/fa";
 import "./Header.css";
 
 const Header = ({
@@ -226,7 +226,7 @@ const Header = ({
                 role="img"
                 aria-label="Bildirim"
               >
-                🔔
+                <FaBell id="fabell" />
               </span>
               {unreadCount > 0 && (
                 <span className="main-header-notification-badge">

@@ -1,27 +1,25 @@
 import "./HeroSection.css";
+import girisimciVideo from "../../assets/img/girisimci-kadinlar.mp4";
+
 function HeroSection() {
   return (
     <div className="hero-section">
-      <div className="information">
-        <h2>Kadın Girişimini Destekliyoruz!</h2>
+      <video autoPlay loop muted playsInline className="hero-video">
+        <source src={girisimciVideo} type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+      <div className="hero-overlay"></div>
+      <div className="hero-content">
+        <h1>Kadın Girişimini Destekliyoruz!</h1>
         <p>
-          Türkiye’nin ilk ve tek dijital network ağı olan Girişimci Kadınlar
-          Grubu, 2017 yılında Ülkü Hür tarafından kurulmuştur. “Kendine İnan
-          Hayallerine Sahip Çık” sloganıyla birleşen Girişimci Kadınlar Grubu;
-          gönüllülük esasına dayalıdır ve kadınlarımızın çalışma hayatında
-          güçlenmesini hedefler. Her geçen gün büyüyen, kadınların ticarette
-          aktif bir şekilde yer alabilmesi için çalışan, kadın girişimcilerin
-          güçlenmesi için eğitim, rehberlik, koçluk ve network desteği sağlayan
-          ve organizasyonlar düzenleyen bir kadın topluluğudur. Kuruluşundan bu
-          yana GKG misyonu ve vizyonu doğrultusunda, Türkiye başta olmak üzere
-          tüm dünya genelinde 35.000’e yakın kadın girişimci üyeyi aynı çatı
-          altında buluşturmuş; kadın girişimcilerin karar verici ve ekonomik
-          hayatta daha güçlü pozisyonlarda yer almasını sağlamak ve desteklemek
-          için durmaksızın çalışmıştır.
+          Kadınların emeğiyle güçleniyoruz.
+          <br />
+          EmekSepeti, evden üretim yapan kadınları destekler, emeklerini görünür
+          kılar.
         </p>
-        <button>Kayıt Ol</button>
       </div>
     </div>
   );
 }
+
 export default HeroSection;

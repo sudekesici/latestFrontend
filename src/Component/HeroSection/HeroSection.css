@@ -1,135 +1,150 @@
 .hero-section {
-  width: 100%;
-  min-height: 70vh;
   position: relative;
-  background: #faf3ed;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  padding-top: 100px;
-  overflow: hidden;
+  padding-left: 8%;
+  margin-top: -80px;
+  padding-bottom: 10%; /* Yazıları aşağı almak için padding eklendi */
 }
 
-.hero-section::before {
-  content: "";
+.hero-video {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url("../../../src/assets/img/kalp-kolaj.png");
-
-  background-position: right center;
-  background-repeat: no-repeat;
-  opacity: 0.13;
+  object-fit: cover;
   z-index: 1;
 }
 
-.information {
-  position: relative;
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.5) 0%,
+    rgba(0, 0, 0, 0.3) 50%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
   z-index: 2;
-  max-width: 700px;
-  padding: 2rem 2.5rem;
-  margin-left: 3vw;
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 18px;
-  box-shadow: 0 4px 24px rgba(233, 164, 128, 0.08);
 }
 
-.information h2 {
-  color: #e9a480;
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 1.2rem;
+.hero-content {
+  position: relative;
+  z-index: 3;
+  max-width: 800px;
+  transform: translateY(50px); /* Yazıları aşağı kaydırmak için eklendi */
+}
+
+.hero-content h1 {
+  font-size: 3.5rem;
+  font-weight: 500; /* Başlık kalınlığı azaltıldı */
+  color: #ffffff;
   line-height: 1.2;
-  letter-spacing: 0.02em;
+  margin: 0;
+  margin-bottom: 1.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  animation: fadeInLeft 1s ease-out;
   font-family: "Montserrat", "Quicksand", Arial, sans-serif;
-  text-shadow: 1px 1px 2px #fff7f0;
-  animation: fadeInDown 1s ease-out;
+  letter-spacing: 0.5px;
 }
 
-.information p {
-  color: #a86c4b;
-  font-size: 1.15rem;
-  font-weight: 500;
-  line-height: 1.7;
-  margin-bottom: 2rem;
-  opacity: 0.95;
-  text-shadow: 1px 1px 2px #fff7f0;
-  animation: fadeInUp 1s ease-out 0.3s;
-  animation-fill-mode: both;
+.hero-content p {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  color: #ffffff;
+  margin: 0;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+  animation: fadeInLeft 1s ease-out 0.3s;
+  animation-fill-mode: forwards;
+  opacity: 0;
+  max-width: 600px;
+  font-weight: 400;
 }
 
-.information button {
-  padding: 14px 36px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #fff;
-  background: linear-gradient(45deg, #e9a480, #f7c6a3);
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 4px 15px rgba(233, 164, 128, 0.18);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  animation: fadeInUp 1s ease-out 0.6s;
-  animation-fill-mode: both;
-}
-
-.information button:hover {
-  transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 6px 20px rgba(233, 164, 128, 0.25);
-  background: linear-gradient(45deg, #e9a480, #e9a480);
-}
-
-.information button:active {
-  transform: translateY(1px) scale(0.98);
-}
-
-@keyframes fadeInDown {
+@keyframes fadeInLeft {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateX(-50px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
   }
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+@media (max-width: 1200px) {
+  .hero-content h1 {
+    font-size: 3rem;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  .hero-content p {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    padding-left: 5%;
+    padding-right: 5%;
+    margin-top: -70px;
+  }
+
+  .hero-content {
+    transform: translateY(30px); /* Mobilde daha az aşağıda */
+  }
+
+  .hero-content h1 {
+    font-size: 2.5rem;
+  }
+
+  .hero-content p {
+    font-size: 1rem;
+  }
+
+  .hero-overlay {
+    background: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.6) 0%,
+      rgba(0, 0, 0, 0.4) 100%
+    );
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    margin-top: 0;
+    padding-top: 80px;
+  }
+
+  .hero-content {
+    transform: translateY(20px); /* En küçük ekranda daha az aşağıda */
+  }
+
+  .hero-content h1 {
+    font-size: 2rem;
+  }
+
+  .hero-content p {
+    font-size: 0.9rem;
   }
 }
 
 @media (max-width: 900px) {
-  .information {
-    margin-left: 0;
-    padding: 1.5rem 1rem;
-  }
   .hero-section {
-    padding-top: 70px;
+    margin-top: -70px;
   }
 }
 
 @media (max-width: 600px) {
-  .information h2 {
-    font-size: 1.5rem;
-  }
-  .information p {
-    font-size: 1rem;
-  }
-  .information {
-    padding: 1rem 0.5rem;
-  }
   .hero-section {
-    padding-top: 50px;
+    margin-top: 0;
+    padding-top: 80px;
   }
 }
