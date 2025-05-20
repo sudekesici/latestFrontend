@@ -11,7 +11,7 @@ import axios from "axios";
 import "./ChatBot.css";
 
 const ChatBot = () => {
-  const windowRef = useRef(null);
+  const windowRef = useRef(null); 
 
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
