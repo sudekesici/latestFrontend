@@ -11,6 +11,8 @@ import axios from "axios";
 import "./ChatBot.css";
 
 const ChatBot = () => {
+  const windowRef = useRef(null);
+
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -62,6 +64,24 @@ const ChatBot = () => {
     }, 1000);
     return () => clearInterval(interval);
   }, [userJson]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event) => {
+      if (
+        windowRef.current &&
+        !windowRef.current.contains(event.target)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
 
   const fetchSuggestions = async (type) => {
     try {
@@ -322,7 +342,7 @@ const ChatBot = () => {
       )}
 
       {isOpen && (
-        <div className="chatbot-window">
+        <div className="chatbot-window" ref={windowRef}>
           <div className="chatbot-header">
             <div className="chatbot-title">
               <FaRobot />
