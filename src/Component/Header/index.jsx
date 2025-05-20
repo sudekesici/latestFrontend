@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaEnvelope, FaShoppingCart, FaBell } from "react-icons/fa";
@@ -19,7 +19,9 @@ const Header = ({
   const [messages, setMessages] = useState([]);
   const [showMessages, setShowMessages] = useState(false);
   const [showCart, setShowCart] = useState(false);
-
+  const notificationRef = useRef();
+  const messageRef = useRef();
+  const userMenuRef = useRef();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,6 +34,36 @@ const Header = ({
     // eslint-disable-next-line
   }, [user]);
 
+  useEffect(() => {
+    function handleClickOutside(event) {
+      // Bildirim dropdown
+      if (
+        showNotifications &&
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target)
+      ) {
+        setShowNotifications(false);
+      }
+      // Mesaj dropdown
+      if (
+        showMessages &&
+        messageRef.current &&
+        !messageRef.current.contains(event.target)
+      ) {
+        setShowMessages(false);
+      }
+      // Kullanıcı menüsü
+      if (
+        showUserMenu &&
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target)
+      ) {
+        setShowUserMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showNotifications, showMessages, showUserMenu]);
   // Bildirimler
   const fetchNotifications = async () => {
     const token = localStorage.getItem("token");
@@ -235,7 +267,10 @@ const Header = ({
               )}
             </button>
             {showNotifications && (
-              <div className="main-header-notification-dropdown">
+              <div
+                className="main-header-notification-dropdown"
+                ref={notificationRef}
+              >
                 <h4>Bildirimler</h4>
                 {notifications.length === 0 ? (
                   <div className="main-header-notification-empty">
@@ -286,7 +321,10 @@ const Header = ({
             </button>
             {showMessages && (
               <div className="main-header-message-dropdown">
-                <div className="main-header-message-dropdown-header">
+                <div
+                  className="main-header-message-dropdown-header"
+                  ref={messageRef}
+                >
                   <h4>Mesajlar</h4>
                 </div>
                 {messages.length === 0 ? (
@@ -370,7 +408,7 @@ const Header = ({
                 <span>{user.firstName}</span>
               </button>
               {showUserMenu && (
-                <div className="main-header-user-dropdown">
+                <div className="main-header-user-dropdown" ref={userMenuRef}>
                   <Link
                     to={`/profile/${user.id}`}
                     onClick={(e) => {

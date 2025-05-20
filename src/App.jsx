@@ -25,6 +25,7 @@ import ChatBot from "./ChatBot/ChatBot";
 import EducationalContents from "./Component/EducationalContens/EducationalContens";
 import SuccessStories from "./SuccessStories/SuccessStories";
 import Test from "./Component/Test/Test";
+import BuyerProfile from "./Component/BuyerProfile/BuyerProfile";
 
 function App() {
   const [categories, setCategories] = useState([]);
@@ -125,6 +126,7 @@ function App() {
             path="/profile/:id"
             element={user ? <Profile /> : <Navigate to="/login" />}
           />
+          <Route path="/buyer/:id" element={<BuyerProfile />} />
           <Route
             path="/admin"
             element={

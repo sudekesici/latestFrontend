@@ -619,3 +619,221 @@
     gap: 10px;
   }
 }
+
+// ... existing code ...
+
+.product-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.04);
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.product-actions button {
+  background: #e9a480;
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  padding: 12px 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.13);
+}
+
+.product-actions button:hover {
+  background: #a86c4b;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(233, 164, 128, 0.18);
+}
+
+.product-actions button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+}
+
+.product-actions button svg {
+  font-size: 1.1rem;
+}
+
+@media (max-width: 900px) {
+  .product-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .product-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(233, 164, 128, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Modal Content */
+.modal-content {
+  background: #fff7f0;
+  border-radius: 18px;
+  box-shadow: 0 8px 40px rgba(233, 164, 128, 0.18);
+  padding: 32px 28px 24px 28px;
+  min-width: 340px;
+  max-width: 95vw;
+  width: 400px;
+  position: relative;
+  animation: modalFadeIn 0.25s;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-content h3 {
+  color: #e9a480;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-content input,
+.modal-content textarea,
+.modal-content select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #e9a480;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #faf3ed;
+  color: #a86c4b;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.modal-content input:focus,
+.modal-content textarea:focus,
+.modal-content select:focus {
+  border-color: #a86c4b;
+  outline: none;
+}
+
+.modal-content button[type="submit"] {
+  background: #e9a480;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 0;
+  font-size: 1.08rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s;
+}
+
+.modal-content button[type="submit"]:hover {
+  background: #a86c4b;
+}
+
+.modal-content button[type="button"] {
+  background: #faf3ed;
+  color: #a86c4b;
+  border: 1.5px solid #e9a480;
+  border-radius: 10px;
+  padding: 10px 0;
+  font-size: 1.08rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.modal-content button[type="button"]:hover {
+  background: #e9a480;
+  color: #fff;
+}
+
+@media (max-width: 600px) {
+  .modal-content {
+    padding: 18px 6px 12px 6px;
+    min-width: unset;
+    width: 98vw;
+  }
+}
+
+/* Ürünü Düzenle Butonu */
+.edit-product-button {
+  background: #e9a480;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 22px;
+  font-size: 1.08rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin: 18px 0 0 0;
+  transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.13);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.edit-product-button:hover {
+  background: #a86c4b;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(233, 164, 128, 0.18);
+  transform: translateY(-1px);
+}
+
+.edit-product-button:active {
+  background: #e9a480;
+  color: #fff;
+  transform: translateY(0);
+}
+
+.offer-warning {
+  background: #fff3cd;
+  color: #b8860b;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  font-size: 1.08rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(233, 164, 128, 0.08);
+}

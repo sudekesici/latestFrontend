@@ -138,7 +138,7 @@ const MessageInbox = ({ user, onUnreadChange }) => {
                 >
                   <div
                     className="message-sender"
-                    onClick={() => navigate(`/profile/${msg.otherUser.id}`)}
+                    onClick={() => navigate(`/buyer/${msg.otherUser.id}`)}
                     style={{ cursor: "pointer" }}
                     title="Profili Görüntüle"
                   >

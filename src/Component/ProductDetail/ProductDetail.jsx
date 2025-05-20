@@ -13,6 +13,7 @@ import {
   FaTimesCircle,
   FaMoneyBillWave,
   FaPaperPlane,
+  FaShoppingCart,
 } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
 import "./ProductDetail.css";
@@ -35,13 +36,59 @@ const ProductDetail = () => {
   const [replyText, setReplyText] = useState({});
   const [editingReply, setEditingReply] = useState(null);
   const [mainImageIdx, setMainImageIdx] = useState(0);
+  const [hasAcceptedOffer, setHasAcceptedOffer] = useState(false);
 
+  //product edit
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    title: "",
+    description: "",
+    price: "",
+    stock: "",
+    categoryId: "",
+    shippingDetails: "",
+  });
+  // urun sahipligi
+  const isProductOwner =
+    isLoggedIn &&
+    userType === "SELLER" &&
+    product &&
+    product.seller &&
+    userEmail === product.seller.email;
+  console.log(isProductOwner);
   // OFFER STATE
   const [offerAmount, setOfferAmount] = useState("");
   const [offerMessage, setOfferMessage] = useState("");
   const [offerLoading, setOfferLoading] = useState(false);
 
+  const fetchProduct = async () => {
+    const token = localStorage.getItem("token");
+    if (!id) {
+      setError("Ürün ID'si bulunamadı");
+      setLoading(false);
+      return;
+    }
+    try {
+      const response = await axios.get(`${API_URL}/api/v1/products/${id}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      setProduct(response.data);
+    } catch (error) {
+      setError("Ürün yüklenirken bir hata oluştu");
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
+    console.log("localStorage userType:", localStorage.getItem("userType"));
+    console.log("localStorage token:", localStorage.getItem("token"));
+    console.log("offers:", offers);
+    console.log("userType:", userType);
+    console.log("userEmail:", userEmail);
+    console.log(
+      "Kendi teklifim var mı?",
+      offers.some((o) => o.buyer?.email === userEmail)
+    );
     const token = localStorage.getItem("token");
     const type = localStorage.getItem("userType");
     const payload = token ? JSON.parse(atob(token.split(".")[1])) : null;
@@ -49,24 +96,7 @@ const ProductDetail = () => {
     setIsLoggedIn(!!token);
     setUserType(type || "");
     setUserEmail(email || "");
-
-    const fetchProduct = async () => {
-      if (!id) {
-        setError("Ürün ID'si bulunamadı");
-        setLoading(false);
-        return;
-      }
-      try {
-        const response = await axios.get(`${API_URL}/api/v1/products/${id}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-        setProduct(response.data);
-      } catch (error) {
-        setError("Ürün yüklenirken bir hata oluştu");
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchProduct();
 
     const fetchComments = async () => {
       if (!id) return;
@@ -96,10 +126,17 @@ const ProductDetail = () => {
             `${API_URL}/api/v1/buyer/offers/my-offers`,
             { headers: token ? { Authorization: `Bearer ${token}` } : {} }
           );
-          setOffers(response.data.filter((o) => o.product.id == id));
+          const productOffers = response.data.filter((o) => o.product.id == id);
+          setOffers(productOffers);
+          // Kabul edilmiş teklif kontrolü
+          const userAcceptedOffer = productOffers.find(
+            (offer) => offer.product.id == id && offer.status === "ACCEPTED"
+          );
+          setHasAcceptedOffer(!!userAcceptedOffer);
         }
       } catch (error) {
         setOffers([]);
+        setHasAcceptedOffer(false);
       }
     };
 
@@ -170,6 +207,30 @@ const ProductDetail = () => {
     setOfferLoading(false);
   };
 
+  //edit product
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `http://localhost:8080/api/v1/seller/products/${product.id}`,
+        {
+          ...editFormData,
+          price: parseFloat(editFormData.price),
+          stock: parseInt(editFormData.stock),
+          categoryId: parseInt(editFormData.categoryId),
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await fetchProduct(); // Artık burada tanımlı!
+      alert("Ürün başarıyla güncellendi");
+      setShowEditModal(false);
+    } catch (error) {
+      alert("Ürün güncellenirken hata oluştu" + error.message);
+    }
+  };
+
+  //comment
   const handleAddComment = async (e) => {
     e.preventDefault();
     if (!isLoggedIn) {
@@ -292,7 +353,11 @@ const ProductDetail = () => {
   // TEKLİF LİSTELEME
   const renderOffers = () => {
     if (!offers || offers.length === 0) {
-      return <p>Henüz teklif yok.</p>;
+      return (
+        <p>
+          Ürününe teklifler mevcut. Elini çabuk tut ve sen de bir tane gönder.
+        </p>
+      );
     }
     const getStatusText = (status) => {
       switch (status) {
@@ -308,136 +373,175 @@ const ProductDetail = () => {
           return status;
       }
     };
+
     return (
       <ul className="offer-list">
-        {offers.map((offer) => (
-          <li key={offer.id} className="offer-item">
-            <span>
-              <FaMoneyBillWave /> <b>{offer.offerAmount} TL</b>
-            </span>
-            {offer.message && (
-              <span className="offer-message">"{offer.message}"</span>
-            )}
-            <span className={`offer-status offer-status-${offer.status}`}>
-              {getStatusText(offer.status)}
-            </span>
-            {/* Detaya Git butonu */}
-            <button
-              style={{
-                marginLeft: 8,
-                background: "#eee",
-                color: "#222",
-                border: "none",
-                borderRadius: 4,
-                padding: "4px 12px",
-                cursor: "pointer",
-              }}
-              onClick={() => navigate(`/offers/${offer.id}`)}
-            >
-              Detaya Git
-            </button>
-            {/* Alıcı için iptal */}
-            {userType === "BUYER" && offer.status === "PENDING" && (
-              <button
-                onClick={async () => {
-                  if (
-                    window.confirm("Teklifinizi iptal etmek istiyor musunuz?")
-                  ) {
-                    try {
-                      const token = localStorage.getItem("token");
-                      await axios.post(
-                        `${API_URL}/api/v1/buyer/offers/${offer.id}/cancel`,
-                        {},
-                        {
-                          headers: {
-                            Authorization: `Bearer ${token}`,
-                          },
+        {offers.map((offer) => {
+          // Sadece satıcı veya teklifin sahibi görebilsin
+          const isOfferOwner = userEmail === offer.buyer?.email;
+          if (userType === "SELLER" || (userType === "BUYER" && isOfferOwner)) {
+            return (
+              <li key={offer.id} className="offer-item">
+                {/* Teklif göndereni sadece satıcı ve teklif sahibi görebilir */}
+                {userType === "SELLER" && offer.buyer && (
+                  <span className="offer-buyer">
+                    <FaUser /> {offer.buyer.firstName} {offer.buyer.lastName}
+                  </span>
+                )}
+                <span>
+                  <FaMoneyBillWave /> <b>{offer.offerAmount} TL</b>
+                </span>
+                {offer.message && (
+                  <span className="offer-message">"{offer.message}"</span>
+                )}
+                <span className={`offer-status offer-status-${offer.status}`}>
+                  {getStatusText(offer.status)}
+                </span>
+                <button
+                  style={{
+                    marginLeft: 8,
+                    background: "#eee",
+                    color: "#222",
+                    border: "none",
+                    borderRadius: 4,
+                    padding: "4px 12px",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => navigate(`/offers/${offer.id}`)}
+                >
+                  Detaya Git
+                </button>
+                {/* Alıcı için iptal */}
+                {userType === "BUYER" && offer.status === "PENDING" && (
+                  <button
+                    onClick={async () => {
+                      if (
+                        window.confirm(
+                          "Teklifinizi iptal etmek istiyor musunuz?"
+                        )
+                      ) {
+                        try {
+                          const token = localStorage.getItem("token");
+                          await axios.post(
+                            `${API_URL}/api/v1/buyer/offers/${offer.id}/cancel`,
+                            {},
+                            {
+                              headers: {
+                                Authorization: `Bearer ${token}`,
+                              },
+                            }
+                          );
+                          setOffers(offers.filter((o) => o.id !== offer.id));
+                        } catch (error) {
+                          alert(
+                            error.response?.data?.message ||
+                              "Teklif iptal edilirken hata oluştu"
+                          );
                         }
-                      );
-                      setOffers(offers.filter((o) => o.id !== offer.id));
-                    } catch (error) {
-                      alert(
-                        error.response?.data?.message ||
-                          "Teklif iptal edilirken hata oluştu"
-                      );
-                    }
-                  }
-                }}
-              >
-                İptal Et
-              </button>
-            )}
-            {/* Satıcı için onayla/reddet */}
-            {userType === "SELLER" && offer.status === "PENDING" && (
-              <>
-                <button
-                  style={{
-                    marginLeft: 8,
-                    background: "#4caf50",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 4,
-                    padding: "4px 12px",
-                    cursor: "pointer",
-                  }}
-                  onClick={async () => {
-                    try {
-                      const token = localStorage.getItem("token");
-                      await axios.post(
-                        `${API_URL}/api/v1/seller/offers/${offer.id}/accept`,
-                        {},
-                        { headers: { Authorization: `Bearer ${token}` } }
-                      );
-                      // Teklifleri tekrar çek
-                      const response = await axios.get(
-                        `${API_URL}/api/v1/seller/offers/product/${id}`,
-                        { headers: { Authorization: `Bearer ${token}` } }
-                      );
-                      setOffers(response.data);
-                    } catch (error) {
-                      alert("Onaylanamadı!");
-                    }
-                  }}
-                >
-                  Onayla
-                </button>
-                <button
-                  style={{
-                    marginLeft: 8,
-                    background: "#e44d26",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 4,
-                    padding: "4px 12px",
-                    cursor: "pointer",
-                  }}
-                  onClick={async () => {
-                    try {
-                      const token = localStorage.getItem("token");
-                      await axios.post(
-                        `${API_URL}/api/v1/seller/offers/${offer.id}/reject`,
-                        {},
-                        { headers: { Authorization: `Bearer ${token}` } }
-                      );
-                      // Teklifleri tekrar çek
-                      const response = await axios.get(
-                        `${API_URL}/api/v1/seller/offers/product/${id}`,
-                        { headers: { Authorization: `Bearer ${token}` } }
-                      );
-                      setOffers(response.data);
-                    } catch (error) {
-                      alert("Reddedilemedi!");
-                    }
-                  }}
-                >
-                  Reddet
-                </button>
-              </>
-            )}
-          </li>
-        ))}
+                      }
+                    }}
+                  >
+                    İptal Et
+                  </button>
+                )}
+                {/* Satıcı için onayla/reddet */}
+                {userType === "SELLER" && offer.status === "PENDING" && (
+                  <>
+                    <button
+                      style={{
+                        marginLeft: 8,
+                        background: "#4caf50",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 4,
+                        padding: "4px 12px",
+                        cursor: "pointer",
+                      }}
+                      onClick={async () => {
+                        try {
+                          const token = localStorage.getItem("token");
+                          await axios.post(
+                            `${API_URL}/api/v1/seller/offers/${offer.id}/accept`,
+                            {},
+                            { headers: { Authorization: `Bearer ${token}` } }
+                          );
+                          // Teklifleri tekrar çek
+                          const response = await axios.get(
+                            `${API_URL}/api/v1/seller/offers/product/${id}`,
+                            { headers: { Authorization: `Bearer ${token}` } }
+                          );
+                          setOffers(response.data);
+                        } catch (error) {
+                          alert("Onaylanamadı!");
+                        }
+                      }}
+                    >
+                      Onayla
+                    </button>
+                    <button
+                      style={{
+                        marginLeft: 8,
+                        background: "#e44d26",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 4,
+                        padding: "4px 12px",
+                        cursor: "pointer",
+                      }}
+                      onClick={async () => {
+                        try {
+                          const token = localStorage.getItem("token");
+                          await axios.post(
+                            `${API_URL}/api/v1/seller/offers/${offer.id}/reject`,
+                            {},
+                            { headers: { Authorization: `Bearer ${token}` } }
+                          );
+                          // Teklifleri tekrar çek
+                          const response = await axios.get(
+                            `${API_URL}/api/v1/seller/offers/product/${id}`,
+                            { headers: { Authorization: `Bearer ${token}` } }
+                          );
+                          setOffers(response.data);
+                        } catch (error) {
+                          alert("Reddedilemedi!");
+                        }
+                      }}
+                    >
+                      Reddet
+                    </button>
+                  </>
+                )}
+              </li>
+            );
+          }
+          // Diğer kullanıcıların teklifleri görünmesin
+          return null;
+        })}
       </ul>
     );
+  };
+  const handleAddToCart = async () => {
+    if (!isLoggedIn) {
+      alert("Sepete eklemek için giriş yapmalısınız");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${API_URL}/api/v1/cart/add`,
+        {
+          productId: id,
+          quantity: 1,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      alert("Ürün sepete eklendi!");
+    } catch (error) {
+      alert("Ürün sepete eklenirken bir hata oluştu");
+    }
   };
 
   return (
@@ -586,9 +690,92 @@ const ProductDetail = () => {
         </div>
       </div>
 
+      {/* Ürün sahibi ise ürün düzenleme */}
+      {isProductOwner && (
+        <button
+          className="edit-product-button"
+          onClick={() => {
+            setEditFormData({
+              title: product.title,
+              description: product.description,
+              price: product.price,
+              stock: product.stock,
+              categoryId: product.category?.id || "",
+              shippingDetails: product.shippingDetails || "",
+            });
+            setShowEditModal(true);
+          }}
+        >
+          Ürünü Düzenle
+        </button>
+      )}
+      {showEditModal && (
+        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Ürünü Düzenle</h3>
+            <form onSubmit={handleEditSubmit}>
+              <input
+                value={editFormData.title}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, title: e.target.value })
+                }
+                required
+              />
+              <textarea
+                value={editFormData.description}
+                onChange={(e) =>
+                  setEditFormData({
+                    ...editFormData,
+                    description: e.target.value,
+                  })
+                }
+                required
+              />
+              <input
+                type="number"
+                value={editFormData.price}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, price: e.target.value })
+                }
+                required
+              />
+              <input
+                type="number"
+                value={editFormData.stock}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, stock: e.target.value })
+                }
+                required
+              />
+              <textarea
+                value={editFormData.shippingDetails}
+                onChange={(e) =>
+                  setEditFormData({
+                    ...editFormData,
+                    shippingDetails: e.target.value,
+                  })
+                }
+              />
+              {/* Kategori seçimi ve diğer alanlar */}
+              <button type="submit">Kaydet</button>
+              <button type="button" onClick={() => setShowEditModal(false)}>
+                İptal
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
       {/* TEKLİF FORMU ve TEKLİFLER */}
+
       <div className="offers-section">
         <h2>Teklifler</h2>
+        {offers.length > 0 &&
+          userType !== "SELLER" &&
+          !offers.some((o) => o.buyer?.email === userEmail) && (
+            <div className="offer-warning">
+              Bu ürüne teklifler var, elini çabuk tut!
+            </div>
+          )}
         {isLoggedIn && userType === "BUYER" && (
           <form onSubmit={handleSendOffer} className="offer-form">
             <div>
@@ -625,6 +812,13 @@ const ProductDetail = () => {
         <div className="offers-list">{renderOffers()}</div>
       </div>
 
+      <div className="product-actions">
+        {isLoggedIn && userType === "BUYER" && hasAcceptedOffer && (
+          <button onClick={handleAddToCart}>
+            <FaShoppingCart /> Sepete Ekle
+          </button>
+        )}
+      </div>
       <div className="product-extra-info">
         <h2>Ürün Detayları</h2>
         <ul>

@@ -24,8 +24,11 @@ const SellerDashboard = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [suggestedPrice, setSuggestedPrice] = useState(null);
+  const [followers, setFollowers] = useState([]);
+
   const [suggesting, setSuggesting] = useState(false);
   const [editImages, setEditImages] = useState([]);
+
   const [editFormData, setEditFormData] = useState({
     title: "",
     description: "",
@@ -36,7 +39,22 @@ const SellerDashboard = () => {
     type: "FOOD",
     shippingDetails: "",
   });
-
+  //followers
+  const fetchFollowers = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      const res = await axios.get(
+        "http://localhost:8080/api/v1/seller/followers",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setFollowers(res.data);
+    } catch (err) {
+      setFollowers([]);
+    }
+  };
   // Yeni ürün ekleme state'leri
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [showProfileEditModal, setShowProfileEditModal] = useState(false);
@@ -134,6 +152,12 @@ const SellerDashboard = () => {
   useEffect(() => {
     checkAuthAndFetchData();
   }, []);
+  useEffect(() => {
+    // ...diğer fetchler...
+    if (user && user.userType === "SELLER") {
+      fetchFollowers();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (activeTab === "orders") {
@@ -436,6 +460,16 @@ const SellerDashboard = () => {
         >
           Favoriler (0)
         </div>
+        <div>
+          {user && user.userType === "SELLER" && (
+            <div
+              className={`tab ${activeTab === "followers" ? "active" : ""}`}
+              onClick={() => setActiveTab("followers")}
+            >
+              Takipçilerim ({followers.length})
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Filtreler ve Ürünler */}
@@ -530,6 +564,47 @@ const SellerDashboard = () => {
             <i className="fas fa-plus"></i> Yeni Ürün Ekle
           </button>
         </>
+      )}
+
+      {/* Takipçilerim Sekmesi */}
+      {activeTab === "followers" && (
+        <div className="followers-container">
+          {followers.length === 0 ? (
+            <div>Henüz takipçiniz yok.</div>
+          ) : (
+            <ul className="followers-list">
+              {followers.map((f) => (
+                <li
+                  key={f.id}
+                  className="follower-item"
+                  onClick={() => navigate(`/buyer/${f.id}`)}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter")
+                      window.location.href = `/profile/${f.id}`;
+                  }}
+                  title={`${f.firstName} ${f.lastName} profiline git`}
+                >
+                  <img
+                    src={
+                      f.profilePicture
+                        ? `http://localhost:8080/profiles/${f.profilePicture}`
+                        : "/default-avatar.png"
+                    }
+                    alt={f.firstName}
+                    className="follower-avatar"
+                  />
+                  <span className="follower-info">
+                    <span className="follower-name">
+                      {f.firstName} {f.lastName}
+                    </span>
+                    <span className="follower-email">({f.email})</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
 
       {/* Satışlarım Sekmesi */}
