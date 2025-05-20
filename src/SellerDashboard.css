@@ -188,12 +188,12 @@
 /* Ürün Grid */
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
   margin-top: 20px;
+  width: 100%;
+  min-width: 0;
 }
-
-/* Ürün Kartı */
 .product-card {
   background: #fff7f0;
   box-shadow: 0 2px 12px rgba(233, 164, 128, 0.1);
@@ -203,8 +203,11 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 480px;
+  min-height: 370px;
   height: 100%;
+  width: 100%;
+  min-width: 0;
+  max-width: 320px;
 }
 
 .product-card:hover {
@@ -215,16 +218,14 @@
 .product-image-container {
   position: relative;
   width: 100%;
-  height: 210px;
+  aspect-ratio: 4/3;
   overflow: hidden;
   background: #faf3ed;
 }
-
 .product-image-container img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  cursor: pointer;
   transition: transform 0.2s;
 }
 
@@ -234,16 +235,29 @@
 
 .product-info {
   padding: 16px;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.product-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid rgba(233, 164, 128, 0.2);
+  margin-top: auto;
 }
 
 .product-title {
   margin: 0 0 4px 0;
   font-size: 16px;
   color: #a86c4b;
+  font-family: "Montserrat", sans-serif;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family: "Montserrat", sans-serif;
+  max-width: 100%;
 }
 
 .product-category {
@@ -251,8 +265,10 @@
   font-size: 14px;
   margin-bottom: 8px;
   font-family: "Quicksand", sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-
 .product-price {
   font-size: 18px;
   font-weight: bold;
@@ -270,7 +286,7 @@
 .product-actions {
   display: flex;
   gap: 8px;
-  padding: 16px;
+  padding: 12px;
   border-top: 1px solid rgba(233, 164, 128, 0.2);
   margin-top: auto;
 }

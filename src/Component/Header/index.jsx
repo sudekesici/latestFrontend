@@ -320,11 +320,8 @@ const Header = ({
               )}
             </button>
             {showMessages && (
-              <div className="main-header-message-dropdown">
-                <div
-                  className="main-header-message-dropdown-header"
-                  ref={messageRef}
-                >
+              <div className="main-header-message-dropdown" ref={messageRef}>
+                <div className="main-header-message-dropdown-header">
                   <h4>Mesajlar</h4>
                 </div>
                 {messages.length === 0 ? (
@@ -358,6 +355,7 @@ const Header = ({
                       <div
                         className="main-header-message-preview"
                         onClick={() => {
+                          console.log("showMessages");
                           setShowMessages(false);
                           const otherUserId =
                             m.sender.id === user.id
@@ -377,7 +375,9 @@ const Header = ({
                 )}
                 <div
                   className="main-header-message-all-link"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log("showMessages");
                     setShowMessages(false);
                     navigate("/messages");
                   }}

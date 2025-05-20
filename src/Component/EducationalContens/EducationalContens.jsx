@@ -9,6 +9,7 @@ const EducationalContents = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedContent, setSelectedContent] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
@@ -72,6 +73,30 @@ const EducationalContents = () => {
     if (!loading && hasMore) {
       setPage((prev) => prev + 1);
     }
+  };
+
+  const getYouTubeVideoId = (url) => {
+    const regExp =
+      /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url?.match(regExp);
+    return match && match[2].length === 11 ? match[2] : null;
+  };
+
+  const handleWatch = () => {
+    if (selectedContent?.videoUrl) {
+      const videoId = getYouTubeVideoId(selectedContent.videoUrl);
+      if (videoId) {
+        setIsPlaying(true);
+      } else {
+        alert("Geçerli bir YouTube linki değil.");
+      }
+    } else {
+      alert("Bu içerik için video bulunmamaktadır.");
+    }
+  };
+
+  const handleCloseVideo = () => {
+    setIsPlaying(false);
   };
 
   const filteredContents = contents.filter((content) => {
@@ -174,29 +199,63 @@ const EducationalContents = () => {
           <div className="modal-content">
             <button
               className="close-button"
-              onClick={() => setSelectedContent(null)}
+              onClick={() => {
+                setSelectedContent(null);
+                setIsPlaying(false);
+              }}
             >
               ×
             </button>
-            <img
-              src={
-                selectedContent.imageUrl ||
-                "https://via.placeholder.com/800x400"
-              }
-              alt={selectedContent.title}
-            />
-            <h2>{selectedContent.title}</h2>
-            <p>{selectedContent.description}</p>
-            <div className="content-details">
-              <span className="category-tag">{selectedContent.category}</span>
-              <span className="duration">
-                {selectedContent.duration} dakika
-              </span>
-            </div>
-            <div className="content-actions">
-              <button className="watch-button">İzle</button>
-              <button className="save-button">Kaydet</button>
-            </div>
+            {isPlaying ? (
+              <div className="video-container">
+                <iframe
+                  className="content-video"
+                  src={`https://www.youtube.com/embed/${getYouTubeVideoId(
+                    selectedContent.videoUrl
+                  )}?autoplay=1`}
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+                <button
+                  className="close-video-button"
+                  onClick={handleCloseVideo}
+                >
+                  Videoyu Kapat
+                </button>
+              </div>
+            ) : (
+              <>
+                <img
+                  src={
+                    selectedContent.imageUrl ||
+                    "https://via.placeholder.com/800x400"
+                  }
+                  alt={selectedContent.title}
+                />
+                <h2>{selectedContent.title}</h2>
+                <p>{selectedContent.description}</p>
+                <div className="content-details">
+                  <span className="category-tag">
+                    {selectedContent.category}
+                  </span>
+                  <span className="duration">
+                    {selectedContent.duration} dakika
+                  </span>
+                </div>
+                <div className="content-actions">
+                  <button
+                    className="watch-button"
+                    onClick={handleWatch}
+                    disabled={!selectedContent.videoUrl}
+                  >
+                    {selectedContent.videoUrl ? "İzle" : "Video Yok"}
+                  </button>
+                  <button className="save-button">Kaydet</button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

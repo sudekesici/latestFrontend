@@ -523,7 +523,7 @@ const SellerDashboard = () => {
                   </div>
                 </div>
                 <div className="product-info">
-                  <h3 className="product-title">
+                  <h3 style={{ fontSize: "1rem" }} className="product-title">
                     {product.title || product.name}
                   </h3>
                   <div className="product-category">
